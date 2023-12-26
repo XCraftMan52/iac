@@ -1,0 +1,29 @@
+version: "3.9"
+
+services:
+  portfolio-website:
+    image: ghcr.io/xcraftman52/portfolio:latest
+    container_name: portfolio-website
+    environment:
+        - WEBHOOK=$WEBHOOK
+    labels:
+    - "traefik.enable=true"
+    - "traefik.http.routers.portfolio.rule=Host(`$DOMAINNAME_VPS_SERVER`)"
+    - "traefik.http.routers.portfolio.entrypoints=https"
+    - "traefik.http.routers.portfolio.tls.certresolver=dns-cloudflare"
+    - "traefik.http.services.portfolio.loadBalancer.server.port=3000"
+    # Homepage Labels
+    - homepage.group=Websites
+    - homepage.name=Personal Portfolio
+    - homepage.icon=https://lucaswebber.dev/favicon.ico
+    - homepage.href=https://lucaswebber.dev
+    - homepage.description=Lucas Webber Personal Portfolio
+    networks:
+      - proxy
+    security_opt:
+      - no-new-privileges:true
+    restart: always
+
+networks:
+  proxy:
+    external: true
