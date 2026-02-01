@@ -1,4 +1,6 @@
-/*
+
 !/apps/
 !.gitignore
 **/.env
+**/data/*
+**/logs/*
