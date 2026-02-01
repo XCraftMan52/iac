@@ -1,0 +1,23 @@
+services:
+  little-link:
+    image: ghcr.io/timothystewart6/littlelink-server:latest
+    #image: timothystewart6/littlelink-server:latest
+    container_name: lucas-littlelink-server
+    env_file: .env
+    # ports:
+    #   - 8080:3000
+    restart: unless-stopped
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.littlelink.rule=Host(`$LITTLELINK_DOMAIN`)"
+      - "traefik.http.routers.littlelink.entrypoints=https"
+      - "traefik.http.routers.littlelink.tls.certresolver=dns-cloudflare"
+      - "traefik.http.services.littlelink.loadbalancer.server.port=3000"
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - proxy
+
+networks:
+  proxy:
+    external: true

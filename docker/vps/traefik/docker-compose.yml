@@ -1,0 +1,82 @@
+services:
+  traefik:
+    security_opt:
+      - no-new-privileges:true
+    restart: always    
+    container_name: "traefik"
+    image: "traefik:latest"
+    command: # CLI arguments
+      - --global.checkNewVersion=true
+      - --global.sendAnonymousUsage=true
+
+      - --entryPoints.http.address=:80
+      - --entryPoints.http.http.redirections.entryPoint.to=https
+      - --entryPoints.http.http.redirections.entryPoint.scheme=https
+      - --entryPoints.http.http.redirections.entryPoint.permanent=true
+      - --entryPoints.https.address=:443
+      - --entrypoints.https.http.tls.certresolver=dns-cloudflare
+
+      - --api=true
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --log=true
+      - --log.filePath=/logs/traefik.log
+      - --log.level=INFO # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --accessLog=true
+      - --accessLog.filePath=/logs/access.log
+      - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
+      - --accessLog.filters.statusCodes=204-299,400-499,500-599
+      - --providers.docker=true
+
+      # - --providers.docker.endpoint=tcp://socket-proxy:2375
+      - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      
+      - --providers.docker.watch=true
+      # Automatically set Host rule for services
+      # - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME_CLOUD_SERVER`)
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.network=proxy
+      - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
+      - --providers.file.watch=true # Only works on top level files in the rules folder
+      - "--certificatesResolvers.dns-cloudflare.acme.email=${CLOUDFLARE_API_EMAIL}"
+      - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # To delay DNS check and reduce LE hitrate
+    networks:
+      - proxy
+      # - socket_proxy
+    ports:
+      - target: 80
+        published: 80
+        protocol: tcp
+        mode: host
+      - target: 443
+        published: 443
+        protocol: tcp
+        mode: host
+    volumes:
+      - ./rules:/rules # file provider directory
+      - ./data/acme.json:/acme.json # Cert Location
+      - ./logs:/logs
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - ../.env
+      - TRAEFIK_DOMAIN_NAME
+      - CF_API_EMAIL=$CLOUDFLARE_API_EMAIL
+      - CF_API_KEY=$CLOUDFLARE_API_KEY
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.api.entryPoints=https"
+      - "traefik.http.routers.api.rule=Host(`$TRAEFIK_DOMAIN_NAME`)"
+      - "traefik.http.routers.api.service=api@internal"
+
+networks:
+  proxy:
+    name: proxy
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.100.0/24
+#   socket_proxy:
+#     external: true

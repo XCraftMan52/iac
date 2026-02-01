@@ -1,0 +1,77 @@
+services:
+  database:
+    image: mariadb:10.5
+    container_name: "pterodactyl-database"
+    networks:
+      - pterodactyl
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - "./data/db:/var/lib/mysql"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+  cache:
+    image: redis:alpine
+    restart: always
+    container_name: "pterodactyl-cache"
+    networks:
+      - pterodactyl
+  panel:
+    image: ghcr.io/pterodactyl/panel:v1.11.11
+    container_name: "pterodactyl-panel"
+    restart: always
+    depends_on:
+      - database
+      - cache
+    networks:
+      - proxy
+      - pterodactyl
+    volumes:
+      - "./data/var/:/app/var/"
+      - "./data/nginx/:/etc/nginx/http.d/"
+      - "./data/certs/:/etc/letsencrypt/"
+      - "./data/logs/:/app/storage/logs"
+    environment:
+      APP_URL: ${APP_URL}
+      APP_TIMEZONE: ${APP_TIMEZONE}
+      APP_SERVICE_AUTHOR: ${APP_SERVICE_AUTHOR}
+      TRUSTED_PROXIES: ${TRUSTED_PROXIES}
+      APP_ENV: ${APP_ENV}
+      APP_ENVIRONMENT_ONLY: ${APP_ENVIRONMENT_ONLY}
+      DB_HOST: database
+      DB_PORT: 3306
+      DB_DATABASE: ${MYSQL_DATABASE}
+      DB_USERNAME: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      CACHE_DRIVER: ${CACHE_DRIVER}
+      SESSION_DRIVER: ${SESSION_DRIVER}
+      QUEUE_DRIVER: ${QUEUE_DRIVER}
+      REDIS_HOST: ${REDIS_HOST}
+      MAIL_FROM: ${MAIL_FROM}
+      MAIL_DRIVER: ${MAIL_DRIVER}
+      MAIL_HOST: ${MAIL_HOST}
+      MAIL_PORT: ${MAIL_PORT}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      MAIL_ENCRYPTION: ${MAIL_ENCRYPTION}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.panel.entrypoints=https"
+      - "traefik.http.routers.panel.tls.certresolver=dns-cloudflare"
+      - "traefik.http.services.panel.loadbalancer.server.port=80"
+      - "traefik.http.routers.panel.rule=Host(`$PTERODACTYL_PANEL_DOMAIN_NAME`)"
+networks:
+  proxy:
+    external: true
+  pterodactyl:
+    driver: bridge
+    name: pterodactyl
+    ipam:
+      config:
+        - subnet: "172.19.0.0/16"
+    driver_opts:
+      com.docker.network.bridge.name: pterodactyl
