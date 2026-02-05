@@ -1,6 +1,5 @@
-
-!/apps/
 !.gitignore
 **/.env
 **/data/*
 **/logs/*
+**/data_mysql/*

@@ -8,7 +8,7 @@ services:
       - pterodactyl
       - proxy
     ports:
-      - "8080:8080"
+      # - "8080:8080"
       - "2022:2022"
     tty: true
     environment:
