@@ -1,0 +1,27 @@
+services:
+  portainer:
+    container_name: portainer
+    image: portainer/portainer-ce:latest
+    command: -H unix:///var/run/docker.sock # # Use Docker Socket Proxy instead for improved security
+    # command: -H tcp://socket-proxy:2375
+    security_opt:
+      - no-new-privileges:true
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - proxy
+      # - socket_proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./data:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.portainer.entrypoints=https"
+      - "traefik.http.routers.portainer.rule=Host(`$PORTAINER_DOMAIN_NAME`)"
+      - "traefik.http.routers.portainer.tls.certresolver=dns-cloudflare"
+      - "traefik.http.services.portainer.loadbalancer.server.port=9000"
+
+networks:
+  proxy:
+    external: true
