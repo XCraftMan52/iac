@@ -1,0 +1,13 @@
+services:
+  cf-companion:
+      container_name: cf-companion
+      image: tiredofit/traefik-cloudflare-companion:latest
+      restart: always
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock:ro
+      env_file: .env
+      # labels:
+      #   # Add hosts specified in rules here to force cf-companion to create the CNAMEs
+      #   # Since cf-companion creates CNAMEs based on host rules, this a workaround for non-docker/external apps
+      #   - "traefik.http.routers.cf-companion-rtr.rule=HostHeader(`pihole.$DOMAINNAME_HOME_SERVER`) || HostHeader(`hassio.$DOMAINNAME_HOME_SERVER`)"
+
