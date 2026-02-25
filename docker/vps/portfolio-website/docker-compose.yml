@@ -1,15 +1,24 @@
 services:
   portfolio-website:
-    image: ghcr.io/xcraftman52/portfolio:latest
+    image: ghcr.io/xcraftman52/portfolio-website:latest
     container_name: portfolio-website
-    environment:
-        - WEBHOOK=$WEBHOOK
+    env_file: .env
     labels:
     - "traefik.enable=true"
     - "traefik.http.routers.portfolio.rule=Host(`$PORTFOLIO_WEBSITE_DOMAIN_NAME`)"
     - "traefik.http.routers.portfolio.entrypoints=https"
     - "traefik.http.routers.portfolio.tls.certresolver=dns-cloudflare"
     - "traefik.http.services.portfolio.loadBalancer.server.port=3000"
+    # Redirect router for legacy domains (.net + .dev)
+    - "traefik.http.routers.portfolioredirect.rule=Host(`$OTHER_DOMAIN_1`) || Host(`$OTHER_DOMAIN_2`)"
+    - "traefik.http.routers.portfolioredirect.entrypoints=https"
+    - "traefik.http.routers.portfolioredirect.tls.certresolver=dns-cloudflare"
+    - "traefik.http.routers.portfolioredirect.middlewares=to-com"
+
+    # Single middleware to redirect both domains to .com
+    - "traefik.http.middlewares.to-com.redirectregex.regex=^https?://(?:www\\.)?(.*)"
+    - "traefik.http.middlewares.to-com.redirectregex.replacement=https://$PORTFOLIO_WEBSITE_DOMAIN_NAME/"
+    - "traefik.http.middlewares.to-com.redirectregex.permanent=false"
     networks:
       - proxy
     security_opt:
