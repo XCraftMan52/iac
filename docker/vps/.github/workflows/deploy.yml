@@ -1,0 +1,48 @@
+name: Deploy Changed Services
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Get changed apps
+        id: changes
+        run: |
+          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
+            | cut -d/ -f1 \
+            | sort -u)
+
+          echo "Changed dirs:"
+          echo "$CHANGED"
+
+          # Save as space-separated for SSH step
+          echo "CHANGED_DIRS=$(echo $CHANGED | tr '\n' ' ')" >> $GITHUB_ENV
+
+      - name: Deploy over SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_IP }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd /opt/docker
+            git pull
+
+            for dir in $CHANGED_DIRS; do
+              if [ -f "$dir/docker-compose.yml" ]; then
+                echo "🚀 Updating $dir"
+                cd "$dir"
+                docker compose pull
+                docker compose up -d
+                cd /opt/docker
+              else
+                echo "Skipping $dir (no docker-compose.yml)"
+              fi
+            done
