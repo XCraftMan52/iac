@@ -22,7 +22,7 @@ services:
       - "traefik.http.routers.vaultwarden.rule=Host(`$VAULT_DOMAIN_NAME`)"
 
   mysql:
-    image: mysql:8.4
+    image: mysql:9.6
     container_name: vaultwarden-mysql
     restart: always
     networks:
