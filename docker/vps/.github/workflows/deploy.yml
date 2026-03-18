@@ -17,23 +17,31 @@ jobs:
       - name: Get changed apps
         id: changes
         run: |
-          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
+          BEFORE=${{ github.event.before }}
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ]; then
+            BEFORE=$(git rev-list --max-parents=0 HEAD)
+          fi
+
+          CHANGED=$(git diff --name-only $BEFORE ${{ github.sha }} \
+            | grep '/' \
             | cut -d/ -f1 \
-            | sort -u)
+            | sort -u \
+            | tr '\n' ' ')
 
-          echo "Changed dirs:"
-          echo "$CHANGED"
-
-          # Save as space-separated for SSH step
-          echo "CHANGED_DIRS=$(echo $CHANGED | tr '\n' ' ')" >> $GITHUB_ENV
+          echo "Changed dirs: $CHANGED"
+          echo "CHANGED_DIRS=$CHANGED" >> $GITHUB_OUTPUT
 
       - name: Deploy over SSH
         uses: appleboy/ssh-action@v1.2.5
+        env:
+          CHANGED_DIRS: ${{ steps.changes.outputs.CHANGED_DIRS }}
         with:
           host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_KEY }}
+          envs: CHANGED_DIRS
           script: |
+            set -e
             cd /opt/docker
             git pull
 
@@ -42,7 +50,7 @@ jobs:
                 echo "🚀 Updating $dir"
                 cd "$dir"
                 docker compose pull
-                docker compose up -d
+                docker compose up -d --remove-orphans
                 cd /opt/docker
               else
                 echo "Skipping $dir (no docker-compose.yml)"
