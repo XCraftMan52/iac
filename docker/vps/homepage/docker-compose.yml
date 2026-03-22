@@ -1,0 +1,27 @@
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:latest
+    container_name: homepage
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./config:/app/config # Make sure your local config directory exists
+      # - /var/run/docker.sock:/var/run/docker.sock # (optional) For docker integrations, see alternative methods
+    environment:
+      PUID: $PUID
+      PGID: $PGID
+      HOMEPAGE_ALLOWED_HOSTS: "*"
+    networks:
+      - proxy
+      - socket_proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homepage.rule=Host(`$DASH_DOMAIN_NAME`)"
+      - "traefik.http.routers.homepage.entrypoints=https"
+      - "traefik.http.routers.homepage.tls.certresolver=dns-cloudflare"
+      - "traefik.http.services.homepage.loadBalancer.server.port=3000"
+networks:
+  proxy:
+    external: true
+  socket_proxy:
+    external: true

@@ -5,3 +5,4 @@
 **/logs/*
 **/data_mysql/*
 **/data_*/*
+*.log
