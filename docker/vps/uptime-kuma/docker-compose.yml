@@ -4,19 +4,42 @@ services:
     container_name: uptime-kuma
     networks:
     - proxy
+    - uptime-kuma
     security_opt:
     - no-new-privileges:true
     restart: always
     volumes:
-      - ./data/uptime-kuma:/app/data
+      - ./data:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - UPTIME_KUMA_DB_TYPE
+      - UPTIME_KUMA_DB_HOSTNAME
+      - UPTIME_KUMA_DB_PORT
+      - UPTIME_KUMA_DB_NAME
+      - UPTIME_KUMA_DB_USERNAME
+      - UPTIME_KUMA_DB_PASSWORD
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.uptime-kuma.entrypoints=https"
       - "traefik.http.routers.uptime-kuma.rule=Host(`$DOMAINNAME_UPTIME`)"
       - "traefik.http.routers.uptime-kuma.tls.certresolver=dns-cloudflare"
       - "traefik.http.services.uptime-kuma.loadbalancer.server.port=3001"
-
+  database:
+    image: mariadb:12.2
+    container_name: "uptime-kuma-database"
+    networks:
+      - uptime-kuma
+    restart: always
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - "./data_db:/var/lib/mysql"
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MARIADB_PASSWORD: ${MYSQL_PASSWORD}
+      MARIADB_DATABASE: ${MYSQL_DATABASE}
+      MARIADB_USER: ${MYSQL_USER}
 networks:
+  uptime-kuma:
+    name: uptime-kuma
   proxy:
     external: true
