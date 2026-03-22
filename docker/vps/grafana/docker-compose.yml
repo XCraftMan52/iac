@@ -1,0 +1,48 @@
+services:
+  grafana:
+    image: grafana/grafana:12.3.5
+    container_name: grafana
+    restart: unless-stopped
+    user: "1000"
+    networks:
+      - proxy
+      - grafana
+    environment:
+      - GF_SERVER_ROOT_URL=https://$GRAFANA_DOMAIN
+      - GF_PLUGINS_PREINSTALL=grafana-clock-panel
+      - GF_DATABASE_TYPE
+      - GF_DATABASE_HOST
+      - GF_DATABASE_NAME
+      - GF_DATABASE_USER
+      - GF_DATABASE_PASSWORD
+      - GF_DATABASE_SSL_MODE
+    volumes:
+      - './data:/var/lib/grafana'
+    depends_on:
+      - postgres
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`$GRAFANA_DOMAIN`)"
+      - "traefik.http.routers.grafana.entrypoints=https"
+      - "traefik.http.routers.grafana.tls.certresolver=dns-cloudflare"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+  postgres:
+    container_name: grafana-postgres
+    image: postgres:15
+    restart: always
+    environment:
+      - POSTGRES_DB
+      - POSTGRES_USER
+      - POSTGRES_PASSWORD
+    ports:
+      - "5432"
+    networks:
+      - grafana
+    volumes:
+      - ./data_postgres:/var/lib/postgresql/data
+    
+networks:
+  grafana:
+    name: grafana
+  proxy:
+    external: true
