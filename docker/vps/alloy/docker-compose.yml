@@ -1,0 +1,32 @@
+services:
+  alloy:
+    image: grafana/alloy:v1.14.1
+    container_name: alloy
+    hostname: franconia
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy/data
+      - /etc/alloy/config.alloy
+    volumes:
+      - ./data/config.alloy:/etc/alloy/config.alloy
+      - ./data_alloy:/var/lib/alloy/data
+      - /:/rootfs:ro
+      - /run:/run:ro
+      - /var/log:/var/log:ro
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker/:ro
+      - /run/udev/data:/run/udev/data:ro
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.alloy.rule=Host(`$ALLOY_DOMAIN`)"
+      - "traefik.http.routers.alloy.entrypoints=https"
+      - "traefik.http.routers.alloy.tls.certresolver=dns-cloudflare"
+      - "traefik.http.services.alloy.loadbalancer.server.port=12345"
+    restart: unless-stopped
+
+networks:
+  proxy:
+    external: true
