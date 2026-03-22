@@ -1,0 +1,72 @@
+services:
+  rackula:
+    image: ghcr.io/rackulalives/rackula:persist
+    container_name: rackula
+    environment:
+      - API_HOST=rackula-api
+      - API_PORT=3001
+      - RACKULA_LISTEN_PORT=8080
+      # Optional: write token for mutating API calls
+      #- RACKULA_API_WRITE_TOKEN=super-secret-token
+    expose:
+      - "8080"  # internal only
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /var/cache/nginx:size=10M
+      - /var/run:size=1M
+      - /tmp:size=5M
+      - /etc/nginx/conf.d:size=1M,uid=101,gid=101
+    networks:
+      - rackula
+      - proxy
+    depends_on:
+      rackula-api:
+        condition: service_healthy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rackula.rule=Host(`$RACULA_DOMAIN_NAME`)"
+      - "traefik.http.routers.rackula.entrypoints=https"
+      - "traefik.http.routers.rackula.tls=true"
+      - "traefik.http.routers.rackula.middlewares=rackula-auth"
+      - "traefik.http.middlewares.rackula-auth.basicauth.users=$RACULA_PASS"
+
+  rackula-api:
+    image: ghcr.io/rackulalives/rackula-api:latest
+    container_name: rackula-api
+    environment:
+      - DATA_DIR=/data
+      - RACKULA_API_PORT=3001
+      - CORS_ORIGIN=https://$RACULA_DOMAIN_NAME
+    expose:
+      - "3001"  # internal only
+    volumes:
+      - ./data:/data
+    restart: unless-stopped
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp:size=5M
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+      retries: 3
+    networks:
+      - rackula
+
+networks:
+  rackula:
+    driver: bridge
+  proxy:
+    external: true

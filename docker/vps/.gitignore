@@ -1,5 +1,6 @@
 !.gitignore
 **/.env
 **/data/*
+**/data_mysql/*
 **/logs/*
 **/data_mysql/*
