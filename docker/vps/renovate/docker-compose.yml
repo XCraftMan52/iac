@@ -1,7 +1,7 @@
 services:
   renovate-ce:
     # Check latest version here: https://github.com/mend/renovate-ce-ee/pkgs/container/renovate-ce
-    image: ghcr.io/mend/renovate-ce:14.2.0  # Replace <X.Y.Z> with a specific version number
+    image: ghcr.io/mend/renovate-ce:14.3.0  # Replace <X.Y.Z> with a specific version number
     container_name: renovate
    # ports:
       # Note: Set MEND_RNV_SERVER_PORT to match internal port. (Defaults to 8080)
