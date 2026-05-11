@@ -1,0 +1,39 @@
+services:
+  backend:
+    image: ghcr.io/phogent/phogent-backend:latest
+    restart: unless-stopped
+    environment:
+      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
+      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
+      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
+      - ELEVENLABS_API_KEY=${ELEVENLABS_API_KEY}
+      - MONGO_URI=${MONGO_URI}
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.phoneagent-backend.rule=Host(`phone-agent-api.lucaswebber.dev`)"
+      - "traefik.http.routers.phoneagent-backend.entrypoints=https"
+      - "traefik.http.routers.phoneagent-backend.tls.certresolver=dns-cloudflare"
+      - "traefik.http.services.phoneagent-backend.loadbalancer.server.port=8000"
+
+  frontend:
+    image: ghcr.io/phogent/phogent-frontend:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      - NEXT_PUBLIC_BACKEND_API_URL=https://phone-agent-api.lucaswebber.dev
+      - NEXT_PUBLIC_WS_URL=wss://phone-agent-api.lucaswebber.dev
+    networks:
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.phoneagent-frontend.rule=Host(`phogent.app`)"
+      - "traefik.http.routers.phoneagent-frontend.entrypoints=https"
+      - "traefik.http.routers.phoneagent-frontend.tls.certresolver=dns-cloudflare"
+      - "traefik.http.services.phoneagent-frontend.loadbalancer.server.port=3000"
+
+networks:
+  proxy:
+    external: true
