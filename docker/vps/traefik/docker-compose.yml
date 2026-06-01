@@ -20,7 +20,7 @@ services:
       - --api.insecure=true
       - --api.dashboard=true
       - --log=true
-      - --log.filePath=/logs/traefik.log
+      # - --log.filePath=/logs/traefik.log
       - --log.level=INFO # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
       - --accessLog=true
       - --accessLog.filePath=/logs/access.log
@@ -42,7 +42,7 @@ services:
       - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
-      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.delayBeforeCheck=90 # To delay DNS check and reduce LE hitrate
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.propagation.delayBeforeChecks=90s
     networks:
       - proxy
       # - socket_proxy
