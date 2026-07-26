@@ -1,0 +1,68 @@
+clusterName: k8s-home
+
+talosVersion: v1.13.7
+kubernetesVersion: v1.36.2
+
+endpoint: https://10.32.100.21:6443 # VIP recommended; using node 1 IP for now
+allowSchedulingOnControlPlanes: true # all 3 nodes run workloads, not just etcd
+
+clusterPodNets:
+  - 10.244.0.0/16
+clusterSvcNets:
+  - 10.96.0.0/12
+
+nodes:
+  - hostname: k8s-home-01
+    ipAddress: 10.32.100.21
+    controlPlane: true
+    installDisk: /dev/sda
+    talosImageURL: factory.talos.dev/metal-installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    networkInterfaces:
+      - deviceSelector:
+          physical: true # only physical NIC on these VMs is ens18
+        addresses:
+          - 10.32.100.21/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 10.32.100.1
+        dhcp: false
+
+  - hostname: k8s-home-02
+    ipAddress: 10.32.100.22
+    controlPlane: true
+    installDisk: /dev/sda
+    talosImageURL: factory.talos.dev/metal-installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    networkInterfaces:
+      - deviceSelector:
+          physical: true # only physical NIC on these VMs is ens18
+        addresses:
+          - 10.32.100.22/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 10.32.100.1
+        dhcp: false
+
+  - hostname: k8s-home-03
+    ipAddress: 10.32.100.23
+    controlPlane: true
+    installDisk: /dev/sda
+    talosImageURL: factory.talos.dev/metal-installer/ce4c980550dd2ab1b17bbf2b08801c7eb59418eafe8f279833297925d67c7515
+    networkInterfaces:
+      - deviceSelector:
+          physical: true # only physical NIC on these VMs is ens18
+        addresses:
+          - 10.32.100.23/24
+        routes:
+          - network: 0.0.0.0/0
+            gateway: 10.32.100.1
+        dhcp: false
+
+# Applies to every node above
+controlPlane:
+  patches:
+    - |-
+      cluster:
+        allowSchedulingOnControlPlanes: true
+
+worker:
+  patches: []

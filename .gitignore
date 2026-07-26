@@ -1,0 +1,11 @@
+# Terraform / OpenTofu
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/terraform.tfvars
+terraform/tfplan
+terraform/.terraform.*
+
+# Talos secrets — never commit these
+talos/talsecret.yaml
+talos/clusterconfig/
