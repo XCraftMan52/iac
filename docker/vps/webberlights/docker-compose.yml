@@ -1,0 +1,23 @@
+services:
+    webberlights:
+      networks:
+      - proxy
+      security_opt:
+      - no-new-privileges:true
+      restart: always
+      image: ghcr.io/webber-lights/webberlights.com/webberlights:latest
+      container_name: webberlights
+      environment:
+          - FPP_URL
+          - NEXT_PUBLIC_BANNER_ENABLED
+          - NEXT_PUBLIC_BANNER_TEXT
+          - NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.webberlights.rule=Host(`$WEBBER_LIGHTS_DOMAIN_NAME`)"
+        - "traefik.http.routers.webberlights.entrypoints=https"
+        - "traefik.http.routers.webberlights.tls.certresolver=dns-cloudflare"
+
+networks:
+  proxy:
+    external: true

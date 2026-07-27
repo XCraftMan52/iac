@@ -1,0 +1,109 @@
+- Admin:
+    - Pterodactyl Panel:
+        icon: pterodactyl.png
+        container: pterodactyl-panel
+        server: docker
+        href: "{{HOMEPAGE_VAR_PTERODACTYL_URL}}"
+        widget:
+            type: pterodactyl
+            url: "{{HOMEPAGE_VAR_PTERODACTYL_URL}}"
+            key: "{{HOMEPAGE_VAR_PTERODACTYL_API_KEY}}"
+    - Vaultwarden:
+        icon: vaultwarden.png
+        href: "{{HOMEPAGE_VAR_VAULTWARDEN_URL}}"
+        container: vaultwarden
+        server: docker
+        description: Password Management
+- Containers:
+    - Portainer:
+        icon: portainer.svg
+        href: "{{HOMEPAGE_VAR_PORTAINER_URL}}"
+        container: portainer
+        server: docker
+        description: Docker Management
+        widget:
+            type: portainer
+            url: "{{HOMEPAGE_VAR_PORTAINER_URL}}"
+            env: 1
+            key: "{{HOMEPAGE_VAR_PORTAINER_API_KEY}}"
+- Monitoring:
+    - Grafana:
+        icon: grafana.svg
+        container: grafana
+        server: docker
+        href: "{{HOMEPAGE_VAR_GRAFANA_URL}}"
+    - Prometheus:
+        icon: prometheus.svg
+        container: prometheus
+        server: docker
+        href: "{{HOMEPAGE_VAR_PROMETHEUS_URL}}"
+    - Loki:
+        icon: loki.svg
+        container: loki
+        server: docker
+        href: "{{HOMEPAGE_VAR_LOKI_URL}}"
+    - Grafana Alloy:
+        icon: alloy.svg
+        container: alloy
+        server: docker
+        href: "{{HOMEPAGE_VAR_ALLOY_URL}}"
+- Network:
+    - Traefik:
+        icon: traefik.png
+        container: traefik
+        server: docker
+        href: "{{HOMEPAGE_VAR_TRAEFIK_URL}}"
+        widget:
+            type: traefik
+            url: "{{HOMEPAGE_VAR_TRAEFIK_URL}}"
+    - Uptime Kuma:
+        icon: uptime-kuma.svg
+        container: uptime-kuma
+        server: docker
+        href: "{{HOMEPAGE_VAR_UPTIME_KUMA_URL}}"
+- Storage:
+    - synologyNas:
+        icon: synology.svg
+        href: "{{HOMEPAGE_VAR_SYNOLOGY_URL}}"
+        description: Storage
+    - Rackula:
+        icon: rackula.svg
+        container: rackula
+        server: docker
+        href: "{{HOMEPAGE_VAR_RACKULA_URL}}"
+- Websites:
+    - {{HOMEPAGE_VAR_WEBSITE_1_NAME}}:
+        icon: "{{HOMEPAGE_VAR_WEBSITE_1_ICON}}"
+        href: "{{HOMEPAGE_VAR_WEBSITE_1_URL}}"
+        container: "{{HOMEPAGE_VAR_WEBSITE_1_CONTAINER}}"
+        server: docker
+    - {{HOMEPAGE_VAR_WEBSITE_2_NAME}}:
+        icon: "{{HOMEPAGE_VAR_WEBSITE_2_ICON}}"
+        href: "{{HOMEPAGE_VAR_WEBSITE_2_URL}}"
+        container: "{{HOMEPAGE_VAR_WEBSITE_2_CONTAINER}}"
+        server: docker
+    - {{HOMEPAGE_VAR_WEBSITE_3_NAME}}:
+        icon: "{{HOMEPAGE_VAR_WEBSITE_3_ICON}}"
+        href: "{{HOMEPAGE_VAR_WEBSITE_3_URL}}"
+        container: "{{HOMEPAGE_VAR_WEBSITE_3_CONTAINER}}"
+        server: docker
+    - {{HOMEPAGE_VAR_WEBSITE_4_NAME}}:
+        icon: "{{HOMEPAGE_VAR_WEBSITE_4_ICON}}"
+        href: "{{HOMEPAGE_VAR_WEBSITE_4_URL}}"
+        container: "{{HOMEPAGE_VAR_WEBSITE_4_CONTAINER}}"
+        server: docker
+    - {{HOMEPAGE_VAR_WEBSITE_5_NAME}}:
+        icon: "{{HOMEPAGE_VAR_WEBSITE_5_ICON}}"
+        href: "{{HOMEPAGE_VAR_WEBSITE_5_URL}}"
+        container: "{{HOMEPAGE_VAR_WEBSITE_5_CONTAINER}}"
+        server: docker
+    - LittleLink:
+        icon: "{{HOMEPAGE_VAR_LITTLELINK_ICON}}"
+        href: "{{HOMEPAGE_VAR_LITTLELINK_URL}}"
+        container: lucas-littlelink-server
+        server: docker
+- Other:
+    - GitHub:
+        icon: github.svg
+        href: https://github.com
+        description: source code
