@@ -9,15 +9,51 @@ on:
     inputs:
       service:
         description: "Docker service folder to deploy"
-        required: true
+        required: false
         type: string
 
 env:
   VPS_HOST: ${{ secrets.VPS_HOST }}
 
 jobs:
-  deploy:
+   detect-services:
     runs-on: ubuntu-latest
+    outputs:
+      services: ${{ steps.changed.outputs.services }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Detect changed services
+        id: changed
+        run: |
+          if [ -n "${{ inputs.service }}" ]; then
+            echo "Manual deployment: ${{ inputs.service }}"
+            echo 'services=["${{ inputs.service }}"]' >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          SERVICES=$(git diff --name-only HEAD^ HEAD \
+            | grep '^docker/vps/' \
+            | cut -d/ -f3 \
+            | sort -u \
+            | jq -R -s -c 'split("\n")[:-1]')
+
+          echo "Changed services:"
+          echo "$SERVICES"
+
+          echo "services=$SERVICES" >> "$GITHUB_OUTPUT"
+   deploy:
+    needs: detect-services
+    if: needs.detect-services.outputs.services != '[]'
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        service: ${{ fromJSON(needs.detect-services.outputs.services) }}
 
     steps:
       - name: Checkout repository
@@ -42,7 +78,7 @@ jobs:
         run: |
           ssh xcraftman52@$VPS_HOST "hostname && whoami"
 
-      - name: Deploy
+      - name: Deploy ${{ matrix.service }}
         run: |
           ansible-playbook \
             -i ansible/inventories/hosts.yml \
