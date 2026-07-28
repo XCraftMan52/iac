@@ -9,7 +9,7 @@ services:
       - --web.enable-remote-write-receiver
     volumes:
       - ./config/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
-      - /opt/appdata/prometheus:/prometheus
+      - /opt/appdata/prometheus:/prometheus/data
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.prometheus.rule=Host(`$PROMETHEUS_DOMAIN`)"
