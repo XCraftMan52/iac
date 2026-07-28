@@ -1,0 +1,23 @@
+---
+- name: Deploy Docker Service
+  hosts: vps
+  become: true
+
+  vars:
+    service_path: "/opt/iac/docker/vps/{{ service }}"
+
+  tasks:
+    - name: Update repository
+      ansible.builtin.git:
+        repo: git@github.com:XCraftMan52/iac.git
+        dest: /opt/iac
+        version: main
+        update: yes
+        key_file: /home/xcraftman52/.ssh/id_ed25519
+
+    - name: Restart Docker Compose service
+      community.docker.docker_compose_v2:
+        project_src: "{{ service_path }}"
+        pull: always
+        state: present
+        remove_orphans: true
