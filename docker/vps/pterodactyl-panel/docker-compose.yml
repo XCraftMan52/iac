@@ -30,10 +30,10 @@ services:
       - proxy
       - pterodactyl
     volumes:
-      - "./data/var/:/app/var/"
-      - "./data/nginx/:/etc/nginx/http.d/"
-      - "./data/certs/:/etc/letsencrypt/"
-      - "./data/logs/:/app/storage/logs"
+      - "/opt/appdata/pterodactyl-panel/var/:/app/var/"
+      - "/opt/appdata/pterodactyl-panel/nginx/:/etc/nginx/http.d/"
+      - "/opt/appdata/pterodactyl-panel/certs/:/etc/letsencrypt/"
+      - "/opt/appdata/pterodactyl-panel/logs/:/app/storage/logs"
     environment:
       APP_URL: ${APP_URL}
       APP_TIMEZONE: ${APP_TIMEZONE}

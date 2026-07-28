@@ -14,7 +14,7 @@ services:
       # - socket_proxy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./data:/data
+      - /opt/appdata/portainer:/data
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.portainer.entrypoints=https"

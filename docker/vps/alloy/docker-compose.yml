@@ -9,8 +9,8 @@ services:
       - --storage.path=/var/lib/alloy/data
       - /etc/alloy/config.alloy
     volumes:
-      - ./data/config.alloy:/etc/alloy/config.alloy
-      - ./data_alloy:/var/lib/alloy/data
+      - ./config/config.alloy:/etc/alloy/config.alloy
+      - /opt/appdata/alloy:/var/lib/alloy/data
       - /:/rootfs:ro
       - /run:/run:ro
       - /var/log:/var/log:ro

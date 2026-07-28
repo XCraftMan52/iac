@@ -22,10 +22,10 @@ services:
       - --log=true
       # - --log.filePath=/logs/traefik.log
       - --log.level=INFO # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
-      - --accessLog=true
-      - --accessLog.filePath=/logs/access.log
-      - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
-      - --accessLog.filters.statusCodes=204-299,400-499,500-599
+      # - --accessLog=true
+      # - --accessLog.filePath=/logs/access.log
+      # - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
+      # - --accessLog.filters.statusCodes=204-299,400-499,500-599
       - --providers.docker=true
 
       # - --providers.docker.endpoint=tcp://socket-proxy:2375
@@ -36,13 +36,27 @@ services:
       # - --providers.docker.defaultrule=Host(`{{ index .Labels "com.docker.compose.service" }}.$DOMAINNAME_CLOUD_SERVER`)
       - --providers.docker.exposedByDefault=false
       - --providers.docker.network=proxy
-      - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
-      - --providers.file.watch=true # Only works on top level files in the rules folder
+    # - --providers.file.directory=/rules # Load dynamic configuration from one or more .toml or .yml files in a directory
+    #  - --providers.file.watch=true # Only works on top level files in the rules folder
       - "--certificatesResolvers.dns-cloudflare.acme.email=${CLOUDFLARE_API_EMAIL}"
       - --certificatesResolvers.dns-cloudflare.acme.storage=/acme.json
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,1.0.0.1:53
       - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.propagation.delayBeforeChecks=90s
+
+      # Redirect non-www to www
+      - "traefik.http.middlewares.redirect-non-www-to-www.redirectregex.regex=^https?://(?:www\\.)?(.+)"
+      - "traefik.http.middlewares.redirect-non-www-to-www.redirectregex.replacement=https://www.$${1}"
+      - "traefik.http.middlewares.redirect-non-www-to-www.redirectregex.permanent=true"
+
+      # HTTPS redirect
+      - "traefik.http.middlewares.middlewares-https-redirectscheme.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.middlewares-https-redirectscheme.redirectscheme.permanent=true"
+
+      # Redirect www to non-www
+      - "traefik.http.middlewares.redirect-www-to-non-www.redirectregex.regex=^https?://www\\.(.+)"
+      - "traefik.http.middlewares.redirect-www-to-non-www.redirectregex.replacement=https://$${1}"
+      - "traefik.http.middlewares.redirect-www-to-non-www.redirectregex.permanent=true"
     networks:
       - proxy
       # - socket_proxy
@@ -56,9 +70,9 @@ services:
         protocol: tcp
         mode: host
     volumes:
-      - ./rules:/rules # file provider directory
-      - ./data/acme.json:/acme.json # Cert Location
-      - ./logs:/logs
+    #  - ./rules:/rules # file provider directory
+      - /opt/appdata/traefik/acme.json:/acme.json # Cert Location
+      - /opt/appdata/traefik/logs:/logs
       - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
       - ../.env

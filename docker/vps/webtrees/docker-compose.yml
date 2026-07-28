@@ -6,9 +6,9 @@ services:
       - proxy
       - webtrees
     volumes:
-      - ./data/data:/var/www/webtrees/data/
-      - ./data/media:/var/www/webtrees/media/
-      - ./data/modules_v4:/var/www/webtrees/modules_v4/
+      - /opt/appdata/webtrees/data:/var/www/webtrees/data/
+      - /opt/appdata/webtrees/media:/var/www/webtrees/media/
+      - /opt/appdata/webtrees/modules_v4:/var/www/webtrees/modules_v4/
     environment:
       - DB_TYPE
       - DB_HOST
@@ -32,7 +32,7 @@ services:
     env_file: 
       - .env
     volumes:
-       - ./data_mysql:/var/lib/mysql
+       - /opt/appdata/webtrees-db:/var/lib/mysql
     environment:
       - MYSQL_ROOT_PASSWORD
       - MYSQL_USER

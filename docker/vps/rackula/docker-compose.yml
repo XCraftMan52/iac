@@ -11,7 +11,7 @@ services:
     expose:
       - "8080"  # internal only
     volumes:
-      - ./data:/data
+      - /opt/appdata/rackula:/data
     restart: unless-stopped
     read_only: true
     security_opt:
@@ -47,7 +47,7 @@ services:
     expose:
       - "3001"  # internal only
     volumes:
-      - ./data:/data
+      - /opt/appdata/rackula:/data
     restart: unless-stopped
     read_only: true
     security_opt:

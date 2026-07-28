@@ -9,7 +9,7 @@ services:
     - no-new-privileges:true
     restart: always
     volumes:
-      - ./data:/app/data
+      - /opt/appdata/uptime-kuma:/app/data
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - UPTIME_KUMA_DB_TYPE
@@ -32,7 +32,7 @@ services:
     restart: always
     command: --default-authentication-plugin=mysql_native_password
     volumes:
-      - "./data_db:/var/lib/mysql"
+      - "/opt/appdata/uptime-kuma-db:/var/lib/mysql"
     environment:
       MARIADB_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MARIADB_PASSWORD: ${MYSQL_PASSWORD}

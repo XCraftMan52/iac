@@ -17,7 +17,7 @@ services:
       - GF_DATABASE_PASSWORD
       - GF_DATABASE_SSL_MODE
     volumes:
-      - './data:/var/lib/grafana'
+      - '/opt/appdata/grafana:/var/lib/grafana'
     depends_on:
       - postgres
     labels:
@@ -39,7 +39,7 @@ services:
     networks:
       - grafana
     volumes:
-      - ./data_postgres:/var/lib/postgresql/data
+      - /opt/appdata/grafana-db:/var/lib/postgresql/data
     
 networks:
   grafana:

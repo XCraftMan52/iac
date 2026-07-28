@@ -7,8 +7,8 @@ services:
     # ports:
     #   - "3100:3100"
     volumes:
-      - ./data/config.yaml:/etc/loki/config.yaml:ro
-      - ./data_loki:/loki:rw
+      - ./config/config.yaml:/etc/loki/config.yaml:ro
+      - /opt/appdata/loki:/loki:rw
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.loki.rule=Host(`$LOKI_DOMAIN`)"
