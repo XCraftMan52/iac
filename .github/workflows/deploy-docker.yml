@@ -42,9 +42,11 @@ jobs:
         run: |
           ssh xcraftman52@$VPS_HOST "hostname && whoami"
 
-      - name: Deploy Docker service
+      - name: Deploy
         run: |
           ansible-playbook \
             -i ansible/inventories/hosts.yml \
             ansible/playbooks/deploy-docker.yml \
-            -e service=${{ inputs.service || '' }}
+            -e service=${{ matrix.service }} \
+            -e ghcr_username="${{ secrets.GHCR_USERNAME }}" \
+            -e ghcr_token="${{ secrets.GHCR_TOKEN }}"

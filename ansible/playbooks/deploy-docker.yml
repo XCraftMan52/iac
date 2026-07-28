@@ -7,6 +7,12 @@
     service_path: "/opt/iac/docker/vps/{{ service }}"
 
   tasks:
+    - name: Login to GHCR
+      community.docker.docker_login:
+        registry_url: ghcr.io
+        username: "{{ ghcr_username }}"
+        password: "{{ ghcr_token }}"
+      
     - name: Update repository
       ansible.builtin.git:
         repo: git@github.com:XCraftMan52/iac.git
