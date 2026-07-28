@@ -8,8 +8,8 @@ services:
       - --storage.tsdb.retention.size=2GB
       - --web.enable-remote-write-receiver
     volumes:
-      - ./data/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
-      - ./data_prometheus:/prometheus
+      - ./config/prometheus.yaml:/etc/prometheus/prometheus.yaml:ro
+      - /opt/appdata/prometheus:/prometheus
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.prometheus.rule=Host(`$PROMETHEUS_DOMAIN`)"
