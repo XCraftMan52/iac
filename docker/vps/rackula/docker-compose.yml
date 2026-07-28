@@ -1,6 +1,6 @@
 services:
   rackula:
-    image: ghcr.io/rackulalives/rackula:0.10.0
+    image: ghcr.io/rackulalives/rackula:0.10.1
     container_name: rackula
     environment:
       - API_HOST=rackula-api
