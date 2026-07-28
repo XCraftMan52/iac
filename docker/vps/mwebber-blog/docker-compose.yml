@@ -2,6 +2,7 @@ services:
   mwebber-blog:
     image: ghcr.io/vid131/hugo-blog:latest
     container_name: mwebber-blog
+    restart: unless-stopped
     networks:
       - proxy
     labels:

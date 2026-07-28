@@ -5,6 +5,7 @@ services:
     networks:
       - proxy
       - webtrees
+    restart: unless-stopped
     volumes:
       - /opt/appdata/webtrees/data:/var/www/webtrees/data/
       - /opt/appdata/webtrees/media:/var/www/webtrees/media/
