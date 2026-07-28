@@ -38,7 +38,7 @@ services:
       - "traefik.http.middlewares.rackula-auth.basicauth.users=$RACULA_PASS"
 
   rackula-api:
-    image: ghcr.io/rackulalives/rackula-api:0.10.0
+    image: ghcr.io/rackulalives/rackula-api:0.10.1
     container_name: rackula-api
     environment:
       - DATA_DIR=/data
