@@ -7,6 +7,7 @@ services:
       # Note: Set MEND_RNV_SERVER_PORT to match internal port. (Defaults to 8080)
       #- "80:8080"  # "[external]:[internal]" Receive APIs and Webhooks on external port
     env_file: .env
+    restart: unless-stopped
     networks:
       - proxy
       # Import required settings for Mend Renovate Self-hosted
