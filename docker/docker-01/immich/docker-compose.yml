@@ -1,0 +1,88 @@
+name: immich
+
+services:
+  immich-server:
+    container_name: immich_server
+    image: ghcr.io/immich-app/immich-server:v3.0.3
+    extends:
+      file: hwaccel.transcoding.yml
+      service: ${TRANSCODING_BACKEND:-cpu}
+    volumes:
+      - /mnt/nas/immich:/usr/src/app/upload
+      - /mnt/photos:/mnt/photos:ro # Family Photosß
+      - /etc/localtime:/etc/localtime:ro
+    env_file:
+      - .env
+    ports:
+      - '2283:2283'
+    depends_on:
+      - redis
+      - database
+    restart: always
+    healthcheck:
+      disable: false
+    networks:
+      - proxy
+      - immich
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.rule=Host(`${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.entrypoints=https"
+      - "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls.certresolver=${TRAEFIK_CERT_RESOLVER}"
+      - "traefik.http.services.${TRAEFIK_ROUTER_NAME}.loadbalancer.server.port=2283"
+
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    image: ghcr.io/immich-app/immich-machine-learning:v3.0.3-rocm
+    extends:
+      file: hwaccel.ml.yml
+      service: rocm
+    volumes:
+      - model-cache:/cache 
+    env_file:
+      - .env
+    networks:
+      - immich
+    group_add:
+      - 44
+      - 990
+    restart: always
+    healthcheck:
+      disable: false
+
+  redis:
+    container_name: immich_redis
+    image: docker.io/valkey/valkey:8-bookworm
+    healthcheck:
+      test: redis-cli ping || exit 1
+    restart: always
+    networks:
+      - immich
+
+  database:
+    container_name: immich_postgres
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_DB: ${DB_DATABASE_NAME}
+      POSTGRES_INITDB_ARGS: '--data-checksums'
+      DB_STORAGE_TYPE: ${DB_STORAGE_TYPE:-SSD}
+    volumes:
+      - /opt/appdata/immich/postgres:/var/lib/postgresql/data
+    env_file:
+      - .env
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE_NAME} -h localhost || exit 1"]
+    networks:
+      - immich
+
+volumes:
+  model-cache:
+
+networks:
+  immich:
+    name: immich
+  proxy:
+    external: true

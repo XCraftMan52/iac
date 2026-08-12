@@ -1,0 +1,4 @@
+services:
+  vaapi:
+    devices:
+      - /dev/dri:/dev/dri
