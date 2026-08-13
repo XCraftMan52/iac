@@ -19,7 +19,7 @@
         dest: /opt/iac
         version: main
         update: true
-        key_file: /home/xcraftman52/.ssh/id_ed25519
+        key_file: /home/xcraftman52/.ssh/github_iac
 
     - name: Restart Docker Compose service
       community.docker.docker_compose_v2:
