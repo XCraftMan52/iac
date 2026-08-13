@@ -4,7 +4,7 @@ services:
       - no-new-privileges:true
     restart: always    
     container_name: "traefik"
-    image: "traefik:v3.7.1"
+    image: "traefik:v3.7.10"
     command: # CLI arguments
       - --global.checkNewVersion=true
       - --global.sendAnonymousUsage=true
