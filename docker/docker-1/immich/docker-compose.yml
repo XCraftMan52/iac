@@ -33,7 +33,7 @@ services:
 
   immich-machine-learning:
     container_name: immich_machine_learning
-    image: ghcr.io/immich-app/immich-machine-learning:v3.0.3-rocm
+    image: ghcr.io/immich-app/immich-machine-learning:v3.1.0-rocm
     extends:
       file: hwaccel.ml.yml
       service: rocm
