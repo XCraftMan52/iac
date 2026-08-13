@@ -1,10 +1,10 @@
 ---
 - name: Deploy Docker Service
-  hosts: vps
+  hosts: "{{ target_host }}"
   become: true
 
   vars:
-    service_path: "/opt/iac/docker/vps/{{ service }}"
+    service_path: "/opt/iac/docker/{{ service }}"
 
   tasks:
     - name: Login to GHCR
@@ -12,13 +12,13 @@
         registry_url: ghcr.io
         username: "{{ ghcr_username }}"
         password: "{{ ghcr_token }}"
-      
+
     - name: Update repository
       ansible.builtin.git:
         repo: git@github.com:XCraftMan52/iac.git
         dest: /opt/iac
         version: main
-        update: yes
+        update: true
         key_file: /home/xcraftman52/.ssh/id_ed25519
 
     - name: Restart Docker Compose service
