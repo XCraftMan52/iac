@@ -1,0 +1,58 @@
+services:
+  backend:
+    container_name: infisical-backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    image: infisical/infisical:V0.162.19 
+    pull_policy: always
+    env_file: .env
+    # ports:
+    #   - 80:8080
+    environment:
+      - NODE_ENV=production
+    networks:
+      - infisical
+      - proxy
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.infisical.rule=Host(`$INFISICAL_DOMAIN`)"
+      - "traefik.http.routers.infisical.entrypoints=https"
+      - "traefik.http.routers.infisical.tls.certresolver=dns-cloudflare"
+      - "traefik.http.services.infisical.loadbalancer.server.port=8080"
+
+  redis:
+    image: redis
+    container_name: infisical-redis
+    env_file: .env
+    restart: always
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+    networks:
+      - infisical
+    volumes:
+      - /opt/appdata/infisical/redis:/data
+
+  db:
+    container_name: infisical-db
+    image: postgres:14-alpine
+    restart: always
+    env_file: .env
+    volumes:
+      - /opt/appdata/infisical/postgres:/var/lib/postgresql/data
+    networks:
+      - infisical
+    healthcheck:
+      test: "pg_isready --username=${POSTGRES_USER} && psql --username=${POSTGRES_USER} --list"
+      interval: 5s
+      timeout: 10s
+      retries: 10
+
+
+networks:
+  infisical:
+  proxy:
+    external: true
