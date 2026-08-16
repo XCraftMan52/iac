@@ -5,6 +5,7 @@
 
   vars:
     service_path: "/opt/iac/docker/{{ service }}"
+    infisical_path: "/{{ service }}"
 
   tasks:
     - name: Login to GHCR
@@ -20,6 +21,42 @@
         version: main
         update: true
         key_file: /home/xcraftman52/.ssh/github_iac
+
+    - name: Login to Infisical
+      ansible.builtin.command:
+        cmd: >
+          infisical login
+          --method=universal-auth
+          --client-id={{ infisical_client_id }}
+          --client-secret={{ infisical_client_secret }}
+          --silent
+          --plain
+      environment:
+        INFISICAL_API_URL: "https://infisical.lucaswebber.dev"
+      delegate_to: localhost
+      no_log: true
+
+    - name: Generate .env from Infisical
+      ansible.builtin.command:
+        cmd: >
+          infisical export
+          --env=prod
+          --path={{ infisical_path }}
+          --format=dotenv
+      environment:
+        INFISICAL_API_URL: "https://infisical.lucaswebber.dev"
+      delegate_to: localhost
+      register: infisical_env
+      no_log: true
+
+    - name: Write .env
+      ansible.builtin.copy:
+        dest: "{{ service_path }}/.env"
+        content: "{{ infisical_env.stdout }}"
+        owner: root
+        group: root
+        mode: "0600"
+      no_log: true
 
     - name: Restart Docker Compose service
       community.docker.docker_compose_v2:
