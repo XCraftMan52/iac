@@ -1,0 +1,88 @@
+services:
+  postgresql:
+    container_name: authentik-postgres
+    env_file:
+    - .env
+    networks:
+      - authentik
+    environment:
+      POSTGRES_DB: ${PG_DB:-authentik}
+      POSTGRES_PASSWORD: ${PG_PASS:?database password required}
+      POSTGRES_USER: ${PG_USER:-authentik}
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test:
+      - CMD-SHELL
+      - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+      timeout: 5s
+    image: docker.io/library/postgres:16-alpine
+    restart: unless-stopped
+    volumes:
+    - /opt/appdata/authentik/postgresql:/var/lib/postgresql/data
+  server:
+    container_name: authentik-server
+    command: server
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    env_file:
+    - .env
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?secret key required}
+    image: ghcr.io/goauthentik/server:2026.5.6
+    # ports:
+    # - ${COMPOSE_PORT_HTTP:-9000}:9000
+    # - ${COMPOSE_PORT_HTTPS:-9443}:9443
+    restart: unless-stopped
+    shm_size: 512mb
+    volumes:
+    - /opt/appdata/authentik/data:/data
+    - /opt/appdata/authentik/custom-templates:/templates
+    networks:
+      - proxy
+      - authentik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=proxy"
+      - "traefik.http.routers.authentik-server.rule=Host(`${AUTHENTIK_HOST}`)"
+      - "traefik.http.routers.authentik-server.entrypoints=https"
+      - "traefik.http.routers.authentik-server.tls=true"
+      - "traefik.http.routers.authentik-server.tls.certresolver=dns-cloudflare"
+      - "traefik.http.services.authentik-server.loadbalancer.server.port=9000"
+  worker:
+    command: worker
+    container_name: authentik-worker
+    depends_on:
+      postgresql:
+        condition: service_healthy
+    env_file:
+    - .env
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: postgresql
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB:-authentik}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER:-authentik}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY:?secret key required}
+    image: ghcr.io/goauthentik/server:2026.5.6
+    restart: unless-stopped
+    shm_size: 512mb
+    user: root
+    networks:
+      - authentik
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - /opt/appdata/authentik/data:/data
+    - /opt/appdata/authentik/certs:/certs
+    - /opt/appdata/authentik/custom-templates:/templates
+
+networks:
+  authentik:
+    name: authentik
+  proxy:
+    external: true
