@@ -34,6 +34,7 @@
       environment:
         INFISICAL_API_URL: "https://infisical.lucaswebber.dev"
       delegate_to: localhost
+      register: infisical_login
       no_log: true
 
     - name: Generate .env from Infisical
@@ -45,6 +46,7 @@
           --format=dotenv
       environment:
         INFISICAL_API_URL: "https://infisical.lucaswebber.dev"
+        INFISICAL_TOKEN: "{{ infisical_login.stdout }}"
       delegate_to: localhost
       register: infisical_env
       no_log: true
