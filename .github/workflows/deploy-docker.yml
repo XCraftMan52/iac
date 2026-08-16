@@ -91,36 +91,6 @@ jobs:
           ssh-keyscan "$VPS_HOST" >> ~/.ssh/known_hosts
           ssh-keyscan "10.32.100.42" >> ~/.ssh/known_hosts
 
-      - name: Test Infisical
-        env:
-          INFISICAL_API_URL: https://infisical.lucaswebber.dev
-          INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
-          INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
-          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
-        run: |
-          infisical login \
-            --method=universal-auth \
-            --client-id="$INFISICAL_CLIENT_ID" \
-            --client-secret="$INFISICAL_CLIENT_SECRET" \
-            --silent \
-            --plain > /tmp/infisical_token
-
-          echo "Infisical login succeeded"
-          echo "Token length: $(wc -c < /tmp/infisical_token)"
-
-          export INFISICAL_TOKEN="$(cat /tmp/infisical_token)"
-
-          infisical export \
-            --projectId="$INFISICAL_PROJECT_ID" \
-            --env=prod \
-            --path=/vps/webberlights \
-            --format=dotenv \
-            > /tmp/test.env
-
-          echo "Infisical export succeeded"
-          echo "Number of variables: $(grep -c '=' /tmp/test.env)"
-          rm -f /tmp/infisical_token /tmp/test.env
-          
       - name: Deploy ${{ matrix.service }}
         run: |
           TARGET_HOST="${{ matrix.service }}"
@@ -134,4 +104,5 @@ jobs:
             -e "ghcr_username=${{ secrets.GHCR_USERNAME }}" \
             -e "ghcr_token=${{ secrets.GHCR_TOKEN }}" \
             -e "infisical_client_id=${{ secrets.INFISICAL_CLIENT_ID }}" \
-            -e "infisical_client_secret=${{ secrets.INFISICAL_CLIENT_SECRET }}"
+            -e "infisical_client_secret=${{ secrets.INFISICAL_CLIENT_SECRET }}" \
+            -e "infisical_project_id=${{ secrets.INFISICAL_PROJECT_ID }}"

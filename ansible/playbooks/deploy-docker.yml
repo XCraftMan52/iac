@@ -41,6 +41,7 @@
       ansible.builtin.command:
         cmd: >
           infisical export
+          --projectId={{ infisical_project_id }}
           --env=prod
           --path={{ infisical_path }}
           --format=dotenv
