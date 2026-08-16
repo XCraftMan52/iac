@@ -7,7 +7,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    image: infisical/infisical:V0.162.19 
+    image: infisical/infisical:v0.162.19 
     pull_policy: always
     env_file: .env
     # ports:
