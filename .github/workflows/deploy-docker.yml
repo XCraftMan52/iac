@@ -90,12 +90,13 @@ jobs:
 
           ssh-keyscan "$VPS_HOST" >> ~/.ssh/known_hosts
           ssh-keyscan "10.32.100.42" >> ~/.ssh/known_hosts
-          
-      - name: Test Infisical authentication
+
+      - name: Test Infisical
         env:
           INFISICAL_API_URL: https://infisical.lucaswebber.dev
           INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
           INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
         run: |
           infisical login \
             --method=universal-auth \
@@ -110,6 +111,7 @@ jobs:
           export INFISICAL_TOKEN="$(cat /tmp/infisical_token)"
 
           infisical export \
+            --projectId="$INFISICAL_PROJECT_ID" \
             --env=prod \
             --path=/vps/webberlights \
             --format=dotenv \
@@ -118,7 +120,7 @@ jobs:
           echo "Infisical export succeeded"
           echo "Number of variables: $(grep -c '=' /tmp/test.env)"
           rm -f /tmp/infisical_token /tmp/test.env
-
+          
       - name: Deploy ${{ matrix.service }}
         run: |
           TARGET_HOST="${{ matrix.service }}"
