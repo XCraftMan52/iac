@@ -50,8 +50,26 @@
         INFISICAL_TOKEN: "{{ infisical_login.stdout }}"
       delegate_to: localhost
       register: infisical_env
+      changed_when: false
       no_log: true
-      
+
+    - name: Verify Infisical returned environment variables
+      ansible.builtin.assert:
+        that:
+          - infisical_env.stdout | trim | length > 0
+        fail_msg: "Infisical returned an empty environment for {{ service }}. Existing .env will not be overwritten."
+      no_log: true
+
+    - name: Back up existing .env and rotate old backups
+      ansible.builtin.shell: |
+        if [ -f .env ]; then
+          cp --preserve=mode,ownership .env ".env.bak.$(date +%Y-%m-%d-%H-%M-%S)"
+        fi
+
+        ls -1t -- .env.bak.* 2>/dev/null | tail -n +6 | xargs -r rm -f --
+      args:
+        chdir: "{{ service_path }}"
+
     - name: Write .env
       ansible.builtin.copy:
         dest: "{{ service_path }}/.env"
@@ -61,7 +79,7 @@
           # DO NOT EDIT MANUALLY
           # Source: Infisical {{ infisical_path }}
           # ============================================================
-    
+
           {{ infisical_env.stdout }}
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
