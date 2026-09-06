@@ -28,7 +28,7 @@ services:
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
   postgres:
     container_name: grafana-postgres
-    image: postgres:15
+    image: postgres:18
     restart: always
     environment:
       - POSTGRES_DB
