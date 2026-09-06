@@ -60,15 +60,20 @@
         fail_msg: "Infisical returned an empty environment for {{ service }}. Existing .env will not be overwritten."
       no_log: true
 
-    - name: Back up existing .env and rotate old backups
-      ansible.builtin.shell: |
-        if [ -f .env ]; then
-          cp --preserve=mode,ownership .env ".env.bak.$(date +%Y-%m-%d-%H-%M-%S)"
-        fi
+    - name: Check for existing .env
+      ansible.builtin.stat:
+        path: "{{ service_path }}/.env"
+      register: env_file
 
-        ls -1t -- .env.bak.* 2>/dev/null | tail -n +6 | xargs -r rm -f --
-      args:
-        chdir: "{{ service_path }}"
+    - name: Back up existing .env
+      ansible.builtin.copy:
+        src: "{{ service_path }}/.env"
+        dest: "{{ service_path }}/.env.bak.{{ ansible_date_time.iso8601_basic_short }}"
+        remote_src: true
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0600"
+      when: env_file.stat.exists
 
     - name: Write .env
       ansible.builtin.copy:
