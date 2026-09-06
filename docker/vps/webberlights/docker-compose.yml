@@ -18,6 +18,10 @@ services:
         - "traefik.http.routers.webberlights.entrypoints=https"
         - "traefik.http.routers.webberlights.tls.certresolver=dns-cloudflare"
 
+        - "traefik.http.routers.webberlights-www.rule=Host(`www.$WEBBER_LIGHTS_DOMAIN_NAME`)"
+        - "traefik.http.routers.webberlights-www.entrypoints=https"
+        - "traefik.http.routers.webberlights-www.tls.certresolver=dns-cloudflare"
+        - "traefik.http.routers.webberlights-www.middlewares=redirect-www-to-non-www@docker"
 networks:
   proxy:
     external: true
