@@ -1,6 +1,6 @@
 services:
   troop711:
-    image: ghcr.io/xcraftman52/troop711/troop711:latest
+    image: ghcr.io/xcraftman52/troop711:b66dbe3
     container_name: troop711
     networks:
       - proxy
