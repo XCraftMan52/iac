@@ -53,13 +53,6 @@
       changed_when: false
       no_log: true
 
-    - name: Verify Infisical returned environment variables
-      ansible.builtin.assert:
-        that:
-          - infisical_env.stdout | trim | length > 0
-        fail_msg: "Infisical returned an empty environment for {{ service }}. Existing .env will not be overwritten."
-      no_log: true
-
     - name: Check for existing .env
       ansible.builtin.stat:
         path: "{{ service_path }}/.env"
@@ -73,7 +66,9 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: "0600"
-      when: env_file.stat.exists
+      when:
+        - env_file.stat.exists
+        - infisical_env.stdout | trim | length > 0
 
     - name: Write .env
       ansible.builtin.copy:
@@ -89,8 +84,10 @@
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
         mode: "0600"
+      when:
+        - infisical_env.stdout | trim | length > 0
       no_log: true
-        
+
     - name: Restart Docker Compose service
       community.docker.docker_compose_v2:
         project_src: "{{ service_path }}"
