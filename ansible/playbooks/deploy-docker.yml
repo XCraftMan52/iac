@@ -51,7 +51,7 @@
       delegate_to: localhost
       register: infisical_env
       changed_when: false
-      no_log: true
+      no_log: false
 
     - name: Check for existing .env
       ansible.builtin.stat:
