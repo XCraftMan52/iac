@@ -51,7 +51,10 @@
       delegate_to: localhost
       register: infisical_env
       changed_when: false
-      no_log: false
+      failed_when: >
+        infisical_env.rc != 0 and
+        "Folder with path" not in infisical_env.stderr
+      no_log: true
 
     - name: Check for existing .env
       ansible.builtin.stat:
