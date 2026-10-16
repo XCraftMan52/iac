@@ -1,6 +1,7 @@
 services:
   actual_server:
     image: docker.io/actualbudget/actual-server:latest
+    container_name: actual-budget
     ports:
       - '5006:5006'
     # environment:
@@ -17,6 +18,12 @@ services:
       # Change './actual-data' below to the path to the folder you want Actual to store its data in on your server.
       # '/data' is the path Actual will look for its files in by default, so leave that as-is.
       - /opt/appdata/actual-budget:/data
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.actual-budget.rule=Host(`budget.lucaswebber.dev`)"
+      - "traefik.http.routers.actual-budget.entrypoints=https"
+      - "traefik.http.routers.actual-budget.tls.certresolver=dns-cloudflare"
+      - "traefik.http.services.actual-budget.loadbalancer.server.port=5006"
     healthcheck:
       # Enable health check for the instance
       test: ['CMD-SHELL', 'node scripts/health-check.js']
@@ -27,3 +34,7 @@ services:
       retries: 3
       start_period: 20s
     restart: unless-stopped
+
+networks:
+  proxy:
+    external: true
