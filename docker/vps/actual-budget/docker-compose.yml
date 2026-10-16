@@ -3,7 +3,7 @@ services:
     image: docker.io/actualbudget/actual-server:latest
     ports:
       - '5006:5006'
-    environment:
+    # environment:
       # Uncomment any of the lines below to set configuration options.
       # - ACTUAL_HTTPS_KEY=/data/selfhost.key
       # - ACTUAL_HTTPS_CERT=/data/selfhost.crt
