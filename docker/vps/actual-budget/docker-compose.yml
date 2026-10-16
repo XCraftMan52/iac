@@ -18,6 +18,8 @@ services:
       # Change './actual-data' below to the path to the folder you want Actual to store its data in on your server.
       # '/data' is the path Actual will look for its files in by default, so leave that as-is.
       - /opt/appdata/actual-budget:/data
+    networks:
+      - proxy
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.actual-budget.rule=Host(`budget.lucaswebber.dev`)"
