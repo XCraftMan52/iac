@@ -1,3 +1,7 @@
+# Ubuntu 26.04 defaults to sudo-rs, whose password prompt Ansible doesn't
+# detect ("Timeout waiting for privilege escalation prompt"). Use classic sudo.
+ansible_become_exe: sudo.ws
+
 # Admin keys for this host only (in addition to ssh_common_authorized_keys).
 ssh_host_authorized_keys:
   # Lucas's Mac, ~/.ssh/rpi4-01
