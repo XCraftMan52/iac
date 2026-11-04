@@ -1,0 +1,172 @@
+---
+# Prepares a fresh Debian/Ubuntu/Raspberry Pi OS host so the deploy-docker
+# workflow can deploy to it. Safe to re-run.
+#
+# Prerequisites: host is reachable over SSH as ansible_user with a key you hold,
+# and the host has entries in inventories/hosts.yml + host_vars/<host>.yml.
+#
+# Run from the repo root:
+#   ansible-galaxy collection install -r ansible/requirements.yml
+#   GITHUB_TOKEN=$(gh auth token) ansible-playbook \
+#     -i ansible/inventories/hosts.yml ansible/playbooks/bootstrap-host.yml \
+#     -l rpi4-01 --private-key ~/.ssh/rpi4-01 -K
+#
+# (-K prompts for the sudo password; only needed until passwordless sudo is set
+#  up by the first run.)
+
+- name: Bootstrap host
+  hosts: all
+  become: true
+
+  vars:
+    user_home: "/home/{{ ansible_user }}"
+    deb_arch_map:
+      aarch64: arm64
+      x86_64: amd64
+    github_token: "{{ lookup('env', 'GITHUB_TOKEN') }}"
+
+  pre_tasks:
+    - name: Check required inputs
+      ansible.builtin.assert:
+        that:
+          - github_token | length > 0
+          - not (ssh_authorized_keys_exclusive | default(false))
+            or (ssh_host_authorized_keys | default([]) | length > 0)
+        fail_msg: >-
+          Set GITHUB_TOKEN (e.g. GITHUB_TOKEN=$(gh auth token)). With
+          ssh_authorized_keys_exclusive enabled, also define
+          ssh_host_authorized_keys in host_vars/{{ inventory_hostname }}.yml
+          so you don't lock yourself out.
+      run_once: true
+
+  tasks:
+    # ---------------------------------------------------------------- sudo
+    - name: Allow passwordless sudo for {{ ansible_user }} (needed by CI)
+      ansible.builtin.copy:
+        dest: "/etc/sudoers.d/90-{{ ansible_user }}"
+        content: "{{ ansible_user }} ALL=(ALL) NOPASSWD:ALL\n"
+        owner: root
+        group: root
+        mode: "0440"
+        validate: visudo -cf %s
+
+    # -------------------------------------------------------------- docker
+    - name: Remove conflicting Docker packages
+      ansible.builtin.apt:
+        name: [docker.io, docker-compose, docker-doc, podman-docker, containerd, runc]
+        state: absent
+
+    - name: Remove legacy Docker apt source (conflicts with deb822 source)
+      ansible.builtin.file:
+        path: /etc/apt/sources.list.d/docker.list
+        state: absent
+
+    - name: Install base packages
+      ansible.builtin.apt:
+        name: [ca-certificates, curl, git]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Add Docker apt repository
+      ansible.builtin.deb822_repository:
+        name: docker
+        types: deb
+        uris: "https://download.docker.com/linux/{{ ansible_distribution | lower }}"
+        suites: "{{ ansible_distribution_release }}"
+        components: stable
+        architectures: "{{ deb_arch_map[ansible_architecture] }}"
+        signed_by: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+
+    - name: Install Docker Engine and Compose plugin
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: true
+
+    - name: Enable Docker
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    # ------------------------------------------------- repo pull (deploy key)
+    - name: Generate repo pull key
+      community.crypto.openssh_keypair:
+        path: "{{ user_home }}/.ssh/github_iac"
+        type: ed25519
+        comment: "{{ inventory_hostname }} iac pull"
+        owner: "{{ ansible_user }}"
+        group: "{{ ansible_user }}"
+        mode: "0600"
+      register: github_iac_key
+
+    - name: Register read-only deploy key on GitHub
+      community.general.github_deploy_key:
+        owner: "{{ iac_repo_owner }}"
+        repo: "{{ iac_repo_name }}"
+        name: "{{ inventory_hostname }} iac pull"
+        key: "{{ github_iac_key.public_key }}"
+        read_only: true
+        force: true # replace a same-named key if this host's key was regenerated
+        token: "{{ github_token }}"
+      delegate_to: localhost
+      become: false
+      no_log: true # task args contain the token
+
+    - name: Create root .ssh directory
+      ansible.builtin.file:
+        path: /root/.ssh
+        state: directory
+        owner: root
+        group: root
+        mode: "0700"
+
+    - name: Trust github.com host key for root (git runs as root in deploys)
+      ansible.builtin.known_hosts:
+        path: /root/.ssh/known_hosts
+        name: github.com
+        key: "{{ github_known_host }}"
+
+    - name: Clone repository
+      ansible.builtin.git:
+        repo: "{{ iac_repo }}"
+        dest: "{{ iac_path }}"
+        version: main
+        update: true
+        key_file: "{{ user_home }}/.ssh/github_iac"
+
+    # ------------------------------------------------------------- appdata
+    - name: Create /opt/appdata
+      ansible.builtin.file:
+        path: /opt/appdata
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create service data directories
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: directory
+        owner: "{{ item.owner | default('root') }}"
+        group: "{{ item.group | default('root') }}"
+        mode: "{{ item.mode | default('0755') }}"
+      loop: "{{ appdata_dirs | default([]) }}"
+      loop_control:
+        label: "{{ item.path }}"
+
+    # -------------------------------------------------------- SSH login keys
+    # Adds the listed keys; existing keys are kept unless
+    # ssh_authorized_keys_exclusive is true (then unlisted keys are removed).
+    - name: Add authorized SSH keys
+      ansible.posix.authorized_key:
+        user: "{{ ansible_user }}"
+        key: "{{ (ssh_common_authorized_keys + ssh_host_authorized_keys | default([])) | join('\n') }}"
+        exclusive: "{{ ssh_authorized_keys_exclusive | default(false) }}"
+        state: present

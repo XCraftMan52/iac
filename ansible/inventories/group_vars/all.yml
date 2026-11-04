@@ -1,0 +1,18 @@
+# Shared settings for every host.
+
+ansible_python_interpreter: auto_silent
+
+iac_repo: git@github.com:XCraftMan52/iac.git
+iac_repo_owner: XCraftMan52
+iac_repo_name: iac
+iac_path: /opt/iac
+
+# Public keys allowed to SSH in on EVERY host (as ansible_user).
+# bootstrap-host.yml adds these + the host's ssh_host_authorized_keys.
+# Existing keys are kept unless ssh_authorized_keys_exclusive: true.
+ssh_common_authorized_keys:
+  # GitHub Actions deploy workflow (private half = DEPLOY_SSH_KEY secret)
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPNx3N88N6PaLdH2nk9oAqtwlu3iwuXz9h3zyxFhd63i ci-deploy@github-actions
+
+# github.com host key, pinned (https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints)
+github_known_host: github.com ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOMqqnkVzrm0SdG6UOoqKLsabgH5C9okWi0dh2l9GKJl
