@@ -1,0 +1,30 @@
+services:
+  fpp-main:
+    image: falconchristmas/fpp:10.3
+    container_name: fpp-main
+    hostname: fpp-main # reported to other players via MultiSync
+    restart: always
+
+    # Host networking so MultiSync broadcast, E1.31 multicast and DDP work
+    # without port mapping. Web UI is served on :80 of the Pi.
+    network_mode: host
+
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 1024
+
+    cap_add:
+      - SYS_PTRACE
+      - SYS_NICE
+
+    devices:
+      - /dev/snd:/dev/snd # all sound cards on the Pi
+
+    volumes:
+      # Must be owned by 500:500 (fpp user inside the container)
+      - /opt/appdata/fpp-main/media:/home/fpp/media
+
+    environment:
+      - FPP_DOCKER_IP=10.32.100.11
+      - TZ=America/New_York

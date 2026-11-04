@@ -1,0 +1,11 @@
+# Admin keys for this host only (in addition to ssh_common_authorized_keys).
+ssh_host_authorized_keys:
+  # Lucas's Mac, ~/.ssh/rpi4-01
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK+6f4eFHX7GhjEEnTEbUjP7UP5ghQ2GImCSNv6eRBf7 lucas@mac-rpi4-01
+
+# Persistent data directories created under /opt/appdata.
+appdata_dirs:
+  - path: /opt/appdata/fpp-main/media
+    owner: "500" # fpp user inside falconchristmas/fpp
+    group: "500"
+    mode: "0770"
