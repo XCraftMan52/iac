@@ -14,7 +14,7 @@ spec:
   chart:
     spec:
       chart: traefik
-      version: ">=30.0.0"
+      version: "42.x" # stays on major 42; Renovate opens a PR for 43
 
       sourceRef:
         kind: HelmRepository

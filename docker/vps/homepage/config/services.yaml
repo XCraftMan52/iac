@@ -56,6 +56,8 @@
         widget:
             type: traefik
             url: "{{HOMEPAGE_VAR_TRAEFIK_URL}}"
+            username: "{{HOMEPAGE_VAR_TRAEFIK_USERNAME}}" # dashboard basic auth
+            password: "{{HOMEPAGE_VAR_TRAEFIK_PASSWORD}}"
     - Uptime Kuma:
         icon: uptime-kuma.svg
         container: uptime-kuma
