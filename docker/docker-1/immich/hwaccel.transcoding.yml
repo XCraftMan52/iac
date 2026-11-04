@@ -1,4 +1,6 @@
 services:
+  cpu: {} # fallback when TRANSCODING_BACKEND is unset (matches upstream Immich)
+
   vaapi:
     devices:
       - /dev/dri:/dev/dri
