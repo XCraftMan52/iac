@@ -1,3 +1,57 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json"
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "docker:pinDigests",
+    "helpers:pinGitHubActionDigests",
+    ":dependencyDashboard",
+    ":semanticCommitsDisabled"
+  ],
+  "timezone": "America/New_York",
+  "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict",
+  "flux": {
+    "managerFilePatterns": ["/^kubernetes/.+\\.ya?ml$/"]
+  },
+  "packageRules": [
+    {
+      "description": "Merging to main deploys immediately, so every update is reviewed by hand",
+      "matchPackageNames": ["*"],
+      "automerge": false
+    },
+    {
+      "description": "Images built from my own repos: no waiting period",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "ghcr.io/xcraftman52/**",
+        "ghcr.io/webber-lights/**",
+        "ghcr.io/phogent/**",
+        "ghcr.io/vid131/**"
+      ],
+      "minimumReleaseAge": null
+    },
+    {
+      "description": "Update multi-container apps together",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/immich-app/**"],
+      "groupName": "immich"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/goauthentik/**"],
+      "groupName": "authentik"
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["ghcr.io/phogent/**"],
+      "groupName": "phogent"
+    },
+    {
+      "description": "Database major versions need a manual migration; never propose them",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": ["postgres", "docker.io/library/postgres", "mysql", "mariadb", "redis", "valkey/valkey", "docker.io/valkey/valkey"],
+      "matchUpdateTypes": ["major"],
+      "enabled": false
+    }
+  ]
 }
