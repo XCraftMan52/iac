@@ -25,7 +25,7 @@ services:
       - "traefik.http.services.infisical.loadbalancer.server.port=8080"
 
   redis:
-    image: redis
+    image: redis@sha256:1f88291b4c57bdf249f02eb085a8669889b2d2954e91d4de5118a5da6b78dd53
     container_name: infisical-redis
     env_file: .env
     restart: always

@@ -1,6 +1,6 @@
 services:
   fpp-main:
-    image: falconchristmas/fpp:10.3
+    image: falconchristmas/fpp:10.3@sha256:c613cb2e033448d94c2b5c5cf92754937cce65f61b9e41cb0ced5e1c8b02395b
     container_name: fpp-main
     hostname: fpp-main # reported to other players via MultiSync
     restart: always

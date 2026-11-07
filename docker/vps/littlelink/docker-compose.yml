@@ -1,6 +1,6 @@
 services:
   little-link:
-    image: ghcr.io/timothystewart6/littlelink-server:latest
+    image: ghcr.io/timothystewart6/littlelink-server:latest@sha256:ac3590a50cc30fec8362666025200adfe74c5f657ea657a6e27a6d70c5489e82
     #image: timothystewart6/littlelink-server:latest
     container_name: lucas-littlelink-server
     env_file: .env
