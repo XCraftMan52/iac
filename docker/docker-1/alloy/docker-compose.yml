@@ -1,6 +1,6 @@
 services:
   alloy:
-    image: grafana/alloy:v1.18.1
+    image: grafana/alloy:v1.18.1@sha256:0f4434c92b3e6cdac38bb129b344e1790c246f7b6e2eaffcc16a5fa363240e33
     container_name: alloy
     hostname: docker-1
     command:

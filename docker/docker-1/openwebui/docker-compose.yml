@@ -1,6 +1,6 @@
 services:
   ollama:
-    image: ollama/ollama:rocm
+    image: ollama/ollama:rocm@sha256:557fbb820145948aaba383e8214e18bb3f597f4fffb08585458c70c253e7c342
     container_name: ollama
     devices:
       - /dev/kfd:/dev/kfd
@@ -16,7 +16,7 @@ services:
     #   - HSA_OVERRIDE_GFX_VERSION=gfx1102 # Adjust for your AMD GPU
 
   open-webui:
-    image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:main@sha256:975e3965dcf5832804d2f77e167920794757027c5a2046917d42023d75fac431
     container_name: openwebui
     volumes:
       - /opt/appdata/openwebui/openwebui:/app/backend/data

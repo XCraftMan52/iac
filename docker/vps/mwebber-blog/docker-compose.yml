@@ -1,6 +1,6 @@
 services:
   mwebber-blog:
-    image: ghcr.io/vid131/hugo-blog:latest
+    image: ghcr.io/vid131/hugo-blog:latest@sha256:55d1391f4ca604c3e7083357e266635d3109b863d0db7d21ff0b8ac91b6d9750
     container_name: mwebber-blog
     restart: unless-stopped
     networks:
