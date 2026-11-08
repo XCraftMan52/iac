@@ -19,6 +19,9 @@ services:
     cap_add:
       - SYS_PTRACE
       - SYS_NICE
+      - NET_ADMIN
+    security_opt:
+      - no-new-privileges:false
 
     devices:
       - /dev/snd:/dev/snd # all sound cards on the Pi
@@ -30,7 +33,13 @@ services:
     environment:
       - FPP_DOCKER_IP=10.32.60.10
       - TZ=America/New_York
-
+    entrypoint: >
+          /bin/bash -c "
+          rm -f /var/run/dbus/pid /var/run/avahi-daemon/pid &&
+          service dbus start &&
+          service avahi-daemon start &&
+          exec /opt/fpp/Docker/runDocker.sh
+          "
 networks:
   fpp:
     driver: macvlan
