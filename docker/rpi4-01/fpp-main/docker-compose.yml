@@ -7,7 +7,9 @@ services:
 
     # Host networking so MultiSync broadcast, E1.31 multicast and DDP work
     # without port mapping. Web UI is served on :80 of the Pi.
-    network_mode: host
+    networks:
+      fpp:
+        ipv4_address: 10.32.60.10
 
     ulimits:
       nofile:
@@ -26,5 +28,17 @@ services:
       - /opt/appdata/fpp-main/media:/home/fpp/media
 
     environment:
-      - FPP_DOCKER_IP=10.32.100.11
+      - FPP_DOCKER_IP=10.32.60.10
       - TZ=America/New_York
+
+networks:
+  fpp:
+    driver: macvlan
+    driver_opts:
+      parent: eth0.60
+    ipam:
+      config:
+        - subnet: 10.32.60.0/24
+          gateway: 10.32.60.1
+          ip_range: 10.32.60.10/32
+
