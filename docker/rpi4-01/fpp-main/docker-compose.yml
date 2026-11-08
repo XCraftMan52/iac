@@ -4,42 +4,38 @@ services:
     container_name: fpp-main
     hostname: fpp-main # reported to other players via MultiSync
     restart: always
-
     # Host networking so MultiSync broadcast, E1.31 multicast and DDP work
     # without port mapping. Web UI is served on :80 of the Pi.
     networks:
       fpp:
         ipv4_address: 10.32.60.10
-
     ulimits:
       nofile:
         soft: 1024
         hard: 1024
-
     cap_add:
       - SYS_PTRACE
       - SYS_NICE
       - NET_ADMIN
     security_opt:
       - no-new-privileges:false
-
     devices:
       - /dev/snd:/dev/snd # all sound cards on the Pi
-
     volumes:
       # Must be owned by 500:500 (fpp user inside the container)
       - /opt/appdata/fpp-main/media:/home/fpp/media
-
     environment:
       - FPP_DOCKER_IP=10.32.60.10
       - TZ=America/New_York
+    user: "0:0"
     entrypoint: >
-          /bin/bash -c "
-          rm -f /var/run/dbus/pid /var/run/avahi-daemon/pid &&
-          service dbus start &&
-          service avahi-daemon start &&
-          exec /opt/fpp/Docker/runDocker.sh
-          "
+      /bin/bash -c "
+      rm -f /var/run/dbus/pid /var/run/avahi-daemon/pid /run/dbus/pid /run/dbus/system_bus_socket &&
+      mkdir -p /run/dbus &&
+      dbus-daemon --system --fork &&
+      avahi-daemon --daemonize &&
+      exec /opt/fpp/Docker/runDocker.sh
+      "
 networks:
   fpp:
     driver: macvlan
@@ -50,4 +46,3 @@ networks:
         - subnet: 10.32.60.0/24
           gateway: 10.32.60.1
           ip_range: 10.32.60.10/32
-
