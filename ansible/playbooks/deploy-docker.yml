@@ -6,6 +6,14 @@
   vars:
     service_path: "/opt/iac/docker/{{ service }}"
     infisical_path: "/{{ service }}"
+    env_backups_to_keep: 3
+    # Credentials come from the runner's environment (lookups run on the
+    # controller), so they never appear on the ansible-playbook command line.
+    ghcr_username: "{{ lookup('env', 'GHCR_USERNAME') }}"
+    ghcr_token: "{{ lookup('env', 'GHCR_TOKEN') }}"
+    infisical_client_id: "{{ lookup('env', 'INFISICAL_CLIENT_ID') }}"
+    infisical_client_secret: "{{ lookup('env', 'INFISICAL_CLIENT_SECRET') }}"
+    infisical_project_id: "{{ lookup('env', 'INFISICAL_PROJECT_ID') }}"
 
   tasks:
     - name: Login to GHCR
@@ -13,6 +21,7 @@
         registry_url: ghcr.io
         username: "{{ ghcr_username }}"
         password: "{{ ghcr_token }}"
+      no_log: true
 
     - name: Update repository
       ansible.builtin.git:
@@ -90,6 +99,21 @@
       when:
         - infisical_env.stdout | trim | length > 0
       no_log: true
+
+    - name: Find old .env backups
+      ansible.builtin.find:
+        paths: "{{ service_path }}"
+        patterns: ".env.bak.*"
+        hidden: true
+      register: env_backups
+
+    - name: Keep only the newest {{ env_backups_to_keep }} .env backups
+      ansible.builtin.file:
+        path: "{{ item.path }}"
+        state: absent
+      loop: "{{ (env_backups.files | sort(attribute='mtime', reverse=true))[env_backups_to_keep:] }}"
+      loop_control:
+        label: "{{ item.path | basename }}"
 
     - name: Restart Docker Compose service
       community.docker.docker_compose_v2:

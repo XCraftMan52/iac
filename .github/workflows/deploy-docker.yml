@@ -4,19 +4,26 @@ on:
   push:
     branches:
       - main
+    paths:
+      - "docker/**"
 
   workflow_dispatch:
     inputs:
       service:
-        description: "Docker service folder to deploy"
-        required: false
+        description: "Service to deploy, as <host>/<service> (e.g. rpi4-01/fpp-main)"
+        required: true
         type: string
 
-env:
-  VPS_HOST: ${{ secrets.VPS_HOST }}
+permissions:
+  contents: read
+
+# One deploy run at a time; a newer push waits instead of racing on /opt/iac.
+concurrency:
+  group: deploy-docker
+  cancel-in-progress: false
 
 jobs:
-   detect-services:
+  detect-services:
     runs-on: ubuntu-latest
     outputs:
       services: ${{ steps.changed.outputs.services }}
@@ -25,33 +32,64 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v7
         with:
-          fetch-depth: 2
+          fetch-depth: 0 # needed to diff against the previous push
 
       - name: Detect changed services
         id: changed
+        env:
+          INPUT_SERVICE: ${{ inputs.service }}
+          BEFORE: ${{ github.event.before }}
+          AFTER: ${{ github.sha }}
         run: |
-          if [ -n "${{ inputs.service }}" ]; then
-            echo "Manual deployment: ${{ inputs.service }}"
-            echo 'services=["${{ inputs.service }}"]' >> "$GITHUB_OUTPUT"
-            exit 0
+          set -euo pipefail
+
+          if [ -n "${INPUT_SERVICE:-}" ]; then
+            if ! [[ "$INPUT_SERVICE" =~ ^[a-z0-9-]+/[a-z0-9-]+$ ]]; then
+              echo "::error::Service must look like <host>/<service>, got '$INPUT_SERVICE'"
+              exit 1
+            fi
+            CANDIDATES="$INPUT_SERVICE"
+          else
+            # Diff the whole push, not just its last commit. Fall back to the
+            # previous commit for new branches or force-pushes.
+            if [ -z "$BEFORE" ] || ! git cat-file -e "${BEFORE}^{commit}" 2>/dev/null; then
+              BEFORE="${AFTER}^"
+            fi
+            # docker/<host>/<service>/<file> -> <host>/<service>
+            CANDIDATES=$(git diff --name-only "$BEFORE" "$AFTER" -- docker/ \
+              | awk -F/ 'NF >= 4 { print $2 "/" $3 }' | sort -u)
           fi
 
-          SERVICES=$(git diff --name-only HEAD^ HEAD \
-            | grep '^docker/' \
-            | cut -d/ -f2,3 \
-            | sort -u \
-            | jq -R -s -c 'split("\n")[:-1]')
+          # Keep services that still exist and whose host is in the inventory.
+          SERVICES=()
+          for s in $CANDIDATES; do
+            host="${s%%/*}"
+            if ! compgen -G "docker/$s/docker-compose.y*ml" >/dev/null; then
+              echo "Skipping $s: no compose file (removed?)"
+            elif ! yq -e ".all.hosts | has(\"$host\")" ansible/inventories/hosts.yml >/dev/null; then
+              echo "Skipping $s: host '$host' is not in ansible/inventories/hosts.yml"
+            else
+              SERVICES+=("$s")
+            fi
+          done
 
-          echo "Changed services:"
-          echo "$SERVICES"
+          if [ -n "${INPUT_SERVICE:-}" ] && [ ${#SERVICES[@]} -eq 0 ]; then
+            echo "::error::Nothing to deploy for '$INPUT_SERVICE'"
+            exit 1
+          fi
 
-          echo "services=$SERVICES" >> "$GITHUB_OUTPUT"
-   deploy:
+          JSON=$(printf '%s\n' "${SERVICES[@]}" | jq -R -s -c 'split("\n") | map(select(length > 0))')
+          echo "Services to deploy: $JSON"
+          echo "services=$JSON" >> "$GITHUB_OUTPUT"
+
+  deploy:
     needs: detect-services
     if: needs.detect-services.outputs.services != '[]'
     runs-on: ubuntu-latest
 
     strategy:
+      max-parallel: 1
+      fail-fast: false
       matrix:
         service: ${{ fromJSON(needs.detect-services.outputs.services) }}
 
@@ -86,28 +124,34 @@ jobs:
           tags: tag:ci
 
       - name: Configure SSH
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
         run: |
-          mkdir -p ~/.ssh
+          set -euo pipefail
+          if [ -z "$SSH_KNOWN_HOSTS" ]; then
+            echo "::error::SSH_KNOWN_HOSTS secret is empty; refusing to trust unknown host keys"
+            exit 1
+          fi
 
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/id_ed25519
-          chmod 600 ~/.ssh/id_ed25519
-
-          ssh-keyscan "$VPS_HOST" >> ~/.ssh/known_hosts
-          ssh-keyscan "10.32.100.42" >> ~/.ssh/known_hosts
-          ssh-keyscan "10.32.100.11" >> ~/.ssh/known_hosts
+          install -d -m 700 ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
 
       - name: Deploy ${{ matrix.service }}
+        env:
+          SERVICE: ${{ matrix.service }}
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          ANSIBLE_HOST_KEY_CHECKING: "True"
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+          INFISICAL_CLIENT_ID: ${{ secrets.INFISICAL_CLIENT_ID }}
+          INFISICAL_CLIENT_SECRET: ${{ secrets.INFISICAL_CLIENT_SECRET }}
+          INFISICAL_PROJECT_ID: ${{ secrets.INFISICAL_PROJECT_ID }}
         run: |
-          TARGET_HOST="${{ matrix.service }}"
-          TARGET_HOST="${TARGET_HOST%%/*}"
-
           ansible-playbook \
             -i ansible/inventories/hosts.yml \
             ansible/playbooks/deploy-docker.yml \
-            -e "target_host=$TARGET_HOST" \
-            -e "service=${{ matrix.service }}" \
-            -e "ghcr_username=${{ secrets.GHCR_USERNAME }}" \
-            -e "ghcr_token=${{ secrets.GHCR_TOKEN }}" \
-            -e "infisical_client_id=${{ secrets.INFISICAL_CLIENT_ID }}" \
-            -e "infisical_client_secret=${{ secrets.INFISICAL_CLIENT_SECRET }}" \
-            -e "infisical_project_id=${{ secrets.INFISICAL_PROJECT_ID }}"
+            -e "target_host=${SERVICE%%/*}" \
+            -e "service=$SERVICE"
