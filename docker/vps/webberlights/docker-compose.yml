@@ -5,7 +5,7 @@ services:
       security_opt:
       - no-new-privileges:true
       restart: always
-      image: ghcr.io/webber-lights/webberlights.com:latest@sha256:a8c0adc90235b5767a5026a7ddef6c88a4069b9f28ac288104bda8e070792aa1
+      image: ghcr.io/webber-lights/webberlights.com:latest@sha256:8a0498db50f1ba36027bdec65f56397e171df44672784d00e1c0db629240a29a
       container_name: webberlights
       environment:
           - FPP_URL
