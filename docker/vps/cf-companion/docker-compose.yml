@@ -1,7 +1,7 @@
 services:
   cf-companion:
       container_name: cf-companion
-      image: tiredofit/traefik-cloudflare-companion:latest
+      image: ghcr.io/tiredofit/docker-traefik-cloudflare-companion:latest@sha256:c6a6ed120d44af7d0d7e4f961894fa40c36b33f90dc2d453a2a6005ff81bf7c7
       restart: always
       security_opt:
         - no-new-privileges:true
