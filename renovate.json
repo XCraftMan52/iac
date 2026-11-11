@@ -49,7 +49,7 @@
     {
       "description": "Database major versions need a manual migration; never propose them",
       "matchDatasources": ["docker"],
-      "matchPackageNames": ["postgres", "docker.io/library/postgres", "mysql", "mariadb", "redis", "valkey/valkey", "docker.io/valkey/valkey"],
+      "matchPackageNames": ["postgres", "docker.io/library/postgres", "ghcr.io/immich-app/postgres", "mysql", "mariadb", "redis", "valkey/valkey", "docker.io/valkey/valkey"],
       "matchUpdateTypes": ["major"],
       "enabled": false
     }
