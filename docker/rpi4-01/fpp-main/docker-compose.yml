@@ -8,7 +8,7 @@ services:
     # without port mapping. Web UI is served on :80 of the Pi.
     networks:
       fpp:
-        ipv4_address: 10.32.60.10
+        ipv4_address: 10.32.80.10
     ulimits:
       nofile:
         soft: 1024
@@ -25,7 +25,7 @@ services:
       # Must be owned by 500:500 (fpp user inside the container)
       - /opt/appdata/fpp-main/media:/home/fpp/media
     environment:
-      - FPP_DOCKER_IP=10.32.60.10
+      - FPP_DOCKER_IP=10.32.80.10
       - TZ=America/New_York
     user: "0:0"
     entrypoint: >
@@ -43,6 +43,6 @@ networks:
       parent: eth0.60
     ipam:
       config:
-        - subnet: 10.32.60.0/24
-          gateway: 10.32.60.1
-          ip_range: 10.32.60.10/32
+        - subnet: 10.32.80.0/24
+          gateway: 10.32.80.1
+          ip_range: 10.32.80.10/32
