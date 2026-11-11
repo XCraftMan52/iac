@@ -40,7 +40,7 @@ networks:
   fpp:
     driver: macvlan
     driver_opts:
-      parent: eth0.60
+      parent: eth0.80
     ipam:
       config:
         - subnet: 10.32.80.0/24
