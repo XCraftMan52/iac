@@ -1,56 +1,49 @@
+# Read-only Docker API for containers that only need to *see* containers
+# (Traefik, Homepage, cf-companion). Lives on its own internal network so
+# public-facing containers on `proxy` cannot reach it.
+#
+# Portainer, Pterodactyl Wings and the Authentik worker still mount the real
+# socket: they need write access, which is root-equivalent either way.
 services:
   socket-proxy:
     container_name: socket-proxy
-    image: tecnativa/docker-socket-proxy
+    image: tecnativa/docker-socket-proxy:latest@sha256:1f5038b54f06c3e18422902cf00ba21803d1c97805aae032e5e6673d532d3459
     networks:
-      - proxy
       - socket_proxy
-          # ipv4_address: 192.168.91.254 # You can specify a static IP
     security_opt:
       - no-new-privileges:true
     restart: always
-    #ports:
-    # - "127.0.0.1:2375:2375" # Port 2375 should only ever get exposed to the internal network. When possible use this line.
-    # I use the next line instead, as I want portainer to manage multiple docker endpoints within my home network.
-    # - "2375:2375"
     volumes:
-      - "/var/run/docker.sock:/var/run/docker.sock"
+      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
-      - LOG_LEVEL=info # debug,info,notice,warning,err,crit,alert,emerg
-      ## Variables match the URL prefix (i.e. AUTH blocks access to /auth/* parts of the API, etc.).
-      # 0 to revoke access.
-      # 1 to grant access.
-      ## Granted by Default
-      - EVENTS=1
+      - LOG_LEVEL=info
+      # 1 = allow, 0 = deny. Only GET requests are allowed while POST=0.
+      - POST=0
+      - EVENTS=1     # Traefik / cf-companion watch for container changes
       - PING=1
       - VERSION=1
-      ## Revoked by Default
-      # Security critical
+      - CONTAINERS=1 # Traefik, Homepage, cf-companion
       - AUTH=0
       - SECRETS=0
-      - POST=1 # Watchtower
-      # Not always needed
       - BUILD=0
       - COMMIT=0
       - CONFIGS=0
-      - CONTAINERS=1 # Traefik, portainer, etc.
       - DISTRIBUTION=0
       - EXEC=0
-      - IMAGES=1 # Portainer
-      - INFO=1 # Portainer
-      - NETWORKS=1 # Portainer
+      - IMAGES=0
+      - INFO=0
+      - NETWORKS=0
       - NODES=0
       - PLUGINS=0
-      - SERVICES=1 # Portainer
+      - SERVICES=0
       - SESSION=0
       - SWARM=0
       - SYSTEM=0
-      - TASKS=1 # Portainer
-      - VOLUMES=1 # Portainer
+      - TASKS=0
+      - VOLUMES=0
 
 networks:
   socket_proxy:
     name: socket_proxy
     driver: bridge
-  proxy:
-    external: true
+    internal: true # no internet access; only containers that join can reach it
