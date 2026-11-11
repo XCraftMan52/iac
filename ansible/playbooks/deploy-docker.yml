@@ -73,7 +73,7 @@
     - name: Back up existing .env
       ansible.builtin.copy:
         src: "{{ service_path }}/.env"
-        dest: "{{ service_path }}/.env.bak.{{ ansible_date_time.iso8601_basic_short }}"
+        dest: "{{ service_path }}/.env.bak.{{ ansible_facts['date_time']['iso8601_basic_short'] }}"
         remote_src: true
         owner: "{{ ansible_user }}"
         group: "{{ ansible_user }}"
