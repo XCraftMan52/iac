@@ -7,7 +7,7 @@ services:
     image: "traefik:v3.7.16"
     command: # CLI arguments
       - --global.checkNewVersion=true
-      - --global.sendAnonymousUsage=true
+      - --global.sendAnonymousUsage=false
       - --entryPoints.http.address=:80
       - --entryPoints.http.http.redirections.entryPoint.to=https
       - --entryPoints.http.http.redirections.entryPoint.scheme=https
@@ -25,8 +25,7 @@ services:
       # - --accessLog.bufferingSize=100 # Configuring a buffer of 100 lines
       # - --accessLog.filters.statusCodes=204-299,400-499,500-599
       - --providers.docker=true
-      # - --providers.docker.endpoint=tcp://socket-proxy:2375
-      - --providers.docker.endpoint=unix:///var/run/docker.sock # Use Docker Socket Proxy instead for improved security
+      - --providers.docker.endpoint=tcp://socket-proxy:2375 # read-only Docker API, see socket-proxy
       - --providers.docker.watch=true
       - --providers.docker.exposedByDefault=false
       - --providers.docker.network=proxy
@@ -56,7 +55,7 @@ services:
       - "traefik.http.routers.api.service=api@internal"
     networks:
       - proxy
-      # - socket_proxy
+      - socket_proxy
     ports:
       - target: 80
         published: 80
@@ -70,9 +69,7 @@ services:
     #  - ./rules:/rules # file provider directory
       - /opt/appdata/traefik/acme.json:/acme.json # Cert Location
       - /opt/appdata/traefik/logs:/logs
-      - /var/run/docker.sock:/var/run/docker.sock:ro
     environment:
-      - ../.env
       - TRAEFIK_DOMAIN_NAME
       - CF_API_EMAIL=$CLOUDFLARE_API_EMAIL
       - CF_API_KEY=$CLOUDFLARE_API_KEY
@@ -84,5 +81,5 @@ networks:
     ipam:
       config:
         - subnet: 192.168.100.0/24
-#   socket_proxy:
-#     external: true
+  socket_proxy:
+    external: true
