@@ -14,13 +14,13 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
   cache:
-    image: redis:alpine
+    image: redis:8.8-alpine
     restart: always
     container_name: "pterodactyl-cache"
     networks:
       - pterodactyl
   panel:
-    image: ghcr.io/pterodactyl/panel:latest
+    image: ghcr.io/pterodactyl/panel:v1.12.4
     container_name: "pterodactyl-panel"
     restart: always
     depends_on:
