@@ -1,7 +1,7 @@
 services:
   webtrees:
     container_name: webtrees
-    image: nathanvaughn/webtrees:2.2.6
+    image: nathanvaughn/webtrees:2.2.6@sha256:27597e9f4664b69380a61d56188f8acdf5fcda31ba9a59187d048c2ac8ee57b8
     networks:
       - proxy
       - webtrees
