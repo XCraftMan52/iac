@@ -33,19 +33,15 @@ services:
 
   immich-machine-learning:
     container_name: immich_machine_learning
-    image: ghcr.io/immich-app/immich-machine-learning:v3.1.0-rocm
-    extends:
-      file: hwaccel.ml.yml
-      service: rocm
+    # CPU-only until GPU workloads move to docker-2 (GPU passthrough removed from docker-1).
+    # To re-enable ROCm: use the -rocm image, extend hwaccel.ml.yml service "rocm", add group_add 44/990.
+    image: ghcr.io/immich-app/immich-machine-learning:v3.1.0
     volumes:
-      - model-cache:/cache 
+      - model-cache:/cache
     env_file:
       - .env
     networks:
       - immich
-    group_add:
-      - 44
-      - 990
     restart: always
     healthcheck:
       disable: false
