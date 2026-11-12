@@ -1,6 +1,6 @@
 services:
   portfolio-website:
-    image: ghcr.io/xcraftman52/portfolio-website:latest
+    image: ghcr.io/xcraftman52/portfolio-website:latest@sha256:f6ccf99562fe1fba8cbfdcf3a6f967f547d6a565722b02d1418c0db0c5204f4c
     container_name: portfolio-website
     env_file: .env
     labels:
