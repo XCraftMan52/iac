@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ghcr.io/phogent/phogent-backend:latest
+    image: ghcr.io/phogent/phogent-backend:latest@sha256:f0351f498f37c99c55c8f4ce4f44973a0c97b86f405e38bba5c5261cfad0acfe
     restart: unless-stopped
     environment:
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
@@ -18,7 +18,7 @@ services:
       - "traefik.http.services.phoneagent-backend.loadbalancer.server.port=8000"
 
   frontend:
-    image: ghcr.io/phogent/phogent-frontend:latest
+    image: ghcr.io/phogent/phogent-frontend:latest@sha256:b42100e2a5e407e7d00470f1f1a8c587b00a30f200827509e5f1cb7e10260d1c
     restart: unless-stopped
     env_file:
       - .env
