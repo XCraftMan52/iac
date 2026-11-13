@@ -121,3 +121,10 @@
         pull: always
         state: present
         remove_orphans: true
+
+    - name: Remove unused images
+      community.docker.docker_prune:
+        images: true
+        images_filters:
+          dangling: false # every image no container uses, not just untagged ones
+      when: docker_prune_images | default(true)

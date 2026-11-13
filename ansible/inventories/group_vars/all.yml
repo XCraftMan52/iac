@@ -7,6 +7,10 @@ iac_repo_owner: XCraftMan52
 iac_repo_name: iac
 iac_path: /opt/iac
 
+# Delete images no container uses after each deploy/removal. Set to false in
+# host_vars for a host that needs to keep unused images around.
+docker_prune_images: true
+
 # Public keys allowed to SSH in on EVERY host (as ansible_user).
 # bootstrap-host.yml adds these + the host's ssh_host_authorized_keys.
 # Existing keys are kept unless ssh_authorized_keys_exclusive: true.

@@ -1,0 +1,82 @@
+---
+# Tears down a service whose docker/<host>/<service>/ folder was deleted from
+# the repo. Run by the deploy-docker workflow; project_name is worked out
+# there from the deleted compose file (its `name:` or the folder name).
+#
+# Removes: the project's containers and networks, its leftover folder in
+# /opt/iac (including the generated .env and backups), and unused images.
+# Keeps:   named volumes and /opt/appdata/<service> data. Delete those by hand
+#          once you're sure you don't need them.
+
+- name: Remove Docker Service
+  hosts: "{{ target_host }}"
+  become: true
+
+  vars:
+    service_path: "/opt/iac/docker/{{ service }}"
+    project_label: "com.docker.compose.project={{ project_name }}"
+
+  tasks:
+    - name: Check inputs
+      ansible.builtin.assert:
+        that:
+          - service is match('^[a-z0-9-]+/[a-z0-9-]+$')
+          - project_name is match('^[a-z0-9][a-z0-9_-]*$')
+        fail_msg: "Invalid service '{{ service }}' or project_name '{{ project_name }}'"
+
+    # Compose labels everything it creates with the project name, so this works
+    # even though the compose file is already gone from the repo.
+    - name: Find the project's containers and networks
+      community.docker.docker_host_info:
+        containers: true
+        containers_all: true
+        containers_filters:
+          label: "{{ project_label }}"
+        networks: true
+        networks_filters:
+          label: "{{ project_label }}"
+      register: project_resources
+
+    - name: Stop and remove containers
+      community.docker.docker_container:
+        name: "{{ item.Id }}"
+        state: absent
+      loop: "{{ project_resources.containers }}"
+      loop_control:
+        label: "{{ item.Names | first }}"
+
+    - name: Remove networks
+      community.docker.docker_network:
+        name: "{{ item.Name }}"
+        state: absent
+      loop: "{{ project_resources.networks }}"
+      loop_control:
+        label: "{{ item.Name }}"
+
+    - name: Update repository
+      ansible.builtin.git:
+        repo: "{{ iac_repo }}"
+        dest: "{{ iac_path }}"
+        version: main
+        update: true
+        key_file: "/home/{{ ansible_user }}/.ssh/github_iac"
+
+    - name: Check whether git still tracks anything in the service folder
+      ansible.builtin.command:
+        cmd: git ls-files -- "docker/{{ service }}"
+        chdir: "{{ iac_path }}"
+      register: tracked_files
+      changed_when: false
+
+    - name: Delete leftover service folder (generated .env and backups)
+      ansible.builtin.file:
+        path: "{{ service_path }}"
+        state: absent
+      when: tracked_files.stdout | length == 0
+
+    - name: Remove unused images
+      community.docker.docker_prune:
+        images: true
+        images_filters:
+          dangling: false # every image no container uses, not just untagged ones
+      when: docker_prune_images | default(true)
