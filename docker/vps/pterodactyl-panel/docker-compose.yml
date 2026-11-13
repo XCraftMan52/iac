@@ -1,6 +1,6 @@
 services:
   database:
-    image: mariadb:12.3
+    image: mariadb:12.3@sha256:4ebbcf100a3ba320766dfa0e1af008df12261301db6ef72798c7650f70794aed
     container_name: "pterodactyl-database"
     networks:
       - pterodactyl
@@ -14,13 +14,13 @@ services:
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
   cache:
-    image: redis:8.8-alpine
+    image: redis:8.8-alpine@sha256:1273af45b299d2b8b60d0e400d90aa6c2c5b1794f01d6a7ca60ff3ba6e65efb5
     restart: always
     container_name: "pterodactyl-cache"
     networks:
       - pterodactyl
   panel:
-    image: ghcr.io/pterodactyl/panel:v1.12.4
+    image: ghcr.io/pterodactyl/panel:v1.12.4@sha256:9fa0023ccba0f56b27a8839e33dea3cfe60fd559f8ac689fd758e24ce6420448
     container_name: "pterodactyl-panel"
     restart: always
     depends_on:

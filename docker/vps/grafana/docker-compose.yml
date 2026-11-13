@@ -1,6 +1,6 @@
 services:
   grafana:
-    image: grafana/grafana:13.2.4
+    image: grafana/grafana:13.2.4@sha256:dbbc38ea21103cefb50396340cd88afec779c7e070b0a7bf5a75b4ce46651d3f
     container_name: grafana
     restart: unless-stopped
     user: "1000"
@@ -28,7 +28,7 @@ services:
       - "traefik.http.services.grafana.loadbalancer.server.port=3000"
   postgres:
     container_name: grafana-postgres
-    image: postgres:15
+    image: postgres:15@sha256:5a407822929c3789ff5154d3d35bd7e2090318149344c8a3d4ca942b035822ed
     restart: always
     environment:
       - POSTGRES_DB
