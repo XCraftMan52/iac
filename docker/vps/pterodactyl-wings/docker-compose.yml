@@ -1,6 +1,6 @@
 services:
   wings:
-    image: ghcr.io/pterodactyl/wings:v1.12.3
+    image: ghcr.io/pterodactyl/wings:v1.12.3@sha256:9468d80545ec4a76712b5bdc862b4478573ca8ef7fd892af4665659f1de469a5
     restart: always
     container_name: pterodactyl-wings
     networks:

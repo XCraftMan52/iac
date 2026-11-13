@@ -1,6 +1,6 @@
 services:
   rackula:
-    image: ghcr.io/rackulalives/rackula:26.10.1
+    image: ghcr.io/rackulalives/rackula:26.10.1@sha256:1ccd0ffdaf99089170e4c20b3ad958e1b0b12e5126b8212f9349f666a2885a68
     container_name: rackula
     environment:
       - API_HOST=rackula-api
@@ -38,7 +38,7 @@ services:
       - "traefik.http.middlewares.rackula-auth.basicauth.users=$RACULA_PASS"
 
   rackula-api:
-    image: ghcr.io/rackulalives/rackula-api:26.10.1
+    image: ghcr.io/rackulalives/rackula-api:26.10.1@sha256:dc72bfa7319570620cee0bf6a6b7b3719a381b749facebf19f83748d0e7cdd12
     container_name: rackula-api
     environment:
       - DATA_DIR=/data
