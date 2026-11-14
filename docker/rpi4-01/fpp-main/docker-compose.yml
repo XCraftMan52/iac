@@ -4,8 +4,8 @@ services:
     container_name: fpp-main
     hostname: fpp-main # reported to other players via MultiSync
     restart: always
-    # Host networking so MultiSync broadcast, E1.31 multicast and DDP work
-    # without port mapping. Web UI is served on :80 of the Pi.
+    # macvlan on VLAN 80 gives FPP its own IP (10.32.80.10) so MultiSync broadcast,
+    # E1.31 multicast and DDP work without port mapping. Web UI is on :80 of that IP.
     networks:
       fpp:
         ipv4_address: 10.32.80.10
@@ -19,6 +19,7 @@ services:
       - NET_ADMIN
     security_opt:
       - no-new-privileges:false
+      - systempaths=unconfined
     devices:
       - /dev/snd:/dev/snd # all sound cards on the Pi
     volumes:
