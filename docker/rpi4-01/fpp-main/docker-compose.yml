@@ -21,22 +21,24 @@ services:
       - no-new-privileges:false
       - systempaths=unconfined
     devices:
-      - /dev/snd:/dev/snd # all sound cards on the Pi
+      - /dev/snd:/dev/snd # all sound cards on the Pi (USB Sound Blaster Play! 3 = card "S3")
     volumes:
       # Must be owned by 500:500 (fpp user inside the container)
       - /opt/appdata/fpp-main/media:/home/fpp/media
+      - ./entrypoint.sh:/usr/local/bin/fpp-docker-entrypoint.sh:ro
     environment:
       - FPP_DOCKER_IP=10.32.80.10
       - TZ=America/New_York
+      # Where FPP's PipeWire lives (mirrors etc/systemd/fpp-pipewire*.service) so
+      # fppd and every other client in the container can find the server.
+      - PIPEWIRE_RUNTIME_DIR=/run/pipewire-fpp
+      - XDG_RUNTIME_DIR=/run/pipewire-fpp
+      - PIPEWIRE_CONFIG_DIR=/etc/pipewire
+      - PULSE_RUNTIME_PATH=/run/pipewire-fpp/pulse
     user: "0:0"
-    entrypoint: >
-      /bin/bash -c "
-      rm -f /var/run/dbus/pid /var/run/avahi-daemon/pid /run/dbus/pid /run/dbus/system_bus_socket &&
-      mkdir -p /run/dbus &&
-      dbus-daemon --system --fork &&
-      avahi-daemon --daemonize &&
-      exec /opt/fpp/Docker/runDocker.sh
-      "
+    # Starts D-Bus/Avahi and FPP's PipeWire stack (no systemd in the container),
+    # then hands off to FPP's own runDocker.sh. See entrypoint.sh.
+    entrypoint: ["/bin/bash", "/usr/local/bin/fpp-docker-entrypoint.sh"]
 networks:
   fpp:
     driver: macvlan
