@@ -4,7 +4,7 @@ services:
   technitium:
     container_name: technitium
     hostname: technitium-dns01
-    image: technitium/dns-server:15.2.0@sha256:23d3b63d959e997800b095fe93009b3fae271b5258234ff2ade8535cb33682c8
+    image: technitium/dns-server:15.6.2@sha256:eb48ac5c135f4ab936b536f74f853d53e15ab39ef37fdbc9598a089b90d9f245
     restart: unless-stopped
     # Own LAN IP (10.32.100.101) on a macvlan, so no port mappings are needed.
     # Clients and DHCP point at .101, not the Pi's .10.
