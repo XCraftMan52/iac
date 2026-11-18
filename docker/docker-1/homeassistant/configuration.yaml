@@ -1,0 +1,16 @@
+# Home Assistant core config, mounted read-only into /config.
+# Everything else (.storage, the database, UI-made automations) lives in
+# /opt/appdata/homeassistant on docker-1.
+
+default_config:
+
+automation: !include automations.yaml
+script: !include scripts.yaml
+scene: !include scenes.yaml
+
+http:
+  # Traefik on docker-1 terminates TLS and forwards from the proxy network.
+  # Without this, HA answers every proxied request with 400 Bad Request.
+  use_x_forwarded_for: true
+  trusted_proxies:
+    - 192.168.100.0/24 # docker-1 "proxy" network (see traefik compose)

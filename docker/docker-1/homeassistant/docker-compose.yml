@@ -1,0 +1,28 @@
+name: homeassistant
+
+services:
+  homeassistant:
+    image: ghcr.io/home-assistant/home-assistant:2026.11.2@sha256:493a07e8f6530fc640223f4a0a5248f20a61ca2f718bb1d31efbf08a2c5ea28f
+    container_name: homeassistant
+    restart: unless-stopped
+    # Host networking is required for discovery (mDNS/SSDP), HomeKit and Cast.
+    # It also means HA can't join the proxy network, so Traefik reaches it on
+    # the host's LAN IP instead (see the service url label below).
+    network_mode: host
+    # The UI editors write to these files and HA refuses to start if an
+    # !include target is missing, so create them before handing off to /init.
+    entrypoint: ["/bin/sh", "-c", "touch /config/automations.yaml /config/scripts.yaml /config/scenes.yaml && exec /init"]
+    environment:
+      - TZ=America/New_York
+    volumes:
+      - /opt/appdata/homeassistant:/config
+      # Tracked in git. A bind-mounted file keeps pointing at the old copy after
+      # git pull replaces it, so run `docker restart homeassistant` after editing.
+      - ./configuration.yaml:/config/configuration.yaml:ro
+      - /etc/localtime:/etc/localtime:ro
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.homeassistant.rule=Host(`ha.lucaswebber.dev`)"
+      - "traefik.http.routers.homeassistant.entrypoints=https"
+      - "traefik.http.routers.homeassistant.tls.certresolver=dns-cloudflare"
+      - "traefik.http.services.homeassistant.loadbalancer.server.url=http://10.32.100.42:8123"
