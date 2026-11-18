@@ -1,0 +1,30 @@
+# Ubuntu 26.04 defaults to sudo-rs, whose password prompt Ansible doesn't
+# detect ("Timeout waiting for privilege escalation prompt"). Use classic sudo.
+ansible_become_exe: sudo.ws
+
+# Admin keys for this host only (in addition to ssh_common_authorized_keys).
+ssh_host_authorized_keys:
+  # Lucas's Mac, ~/.ssh/pve-ubuntu
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIL0ZbwF7qlIqDqehwkydzd1KK6dYZvesX/TJ6KM9IwgX lucas@lucaswebber.com
+
+# Persistent data directories created under /opt/appdata.
+# Owners match what's already on the host, so bootstrap doesn't change them.
+appdata_dirs:
+  - path: /opt/appdata/alloy
+  - path: /opt/appdata/homeassistant
+  - path: /opt/appdata/immich
+    owner: xcraftman52
+    group: xcraftman52
+    mode: "0775"
+  - path: /opt/appdata/jellyfin
+    owner: xcraftman52
+    group: xcraftman52
+    mode: "0775"
+  - path: /opt/appdata/openwebui
+    owner: xcraftman52
+    group: xcraftman52
+    mode: "0775"
+  - path: /opt/appdata/traefik
+    owner: xcraftman52
+    group: xcraftman52
+    mode: "0775"

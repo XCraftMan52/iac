@@ -1,0 +1,10 @@
+# Ubuntu 24.04 still ships classic sudo, so no ansible_become_exe override.
+
+# Admin keys for this host only (in addition to ssh_common_authorized_keys).
+ssh_host_authorized_keys:
+  # Lucas's Mac, ~/.ssh/franconia
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIA7oCFHjOJg6IdkxI0ncbmmWIduvDa57cJInsdt3LUnG lucas@mac-franconia
+
+# No appdata_dirs: the service folders here are owned by whatever user each
+# container runs as (database UIDs, nobody, root), and Docker creates them on
+# first start. Listing them would make bootstrap chown them.

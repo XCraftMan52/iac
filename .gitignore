@@ -9,3 +9,7 @@ terraform/.terraform.*
 # Talos secrets — never commit these
 talos/talsecret.yaml
 talos/clusterconfig/
+
+# Generated on each host by the deploy workflow (secrets from Infisical)
+.env
+.env.bak.*
