@@ -1,0 +1,41 @@
+name: technitium
+
+services:
+  technitium:
+    container_name: technitium
+    hostname: technitium-dns01
+    image: technitium/dns-server:15.2.0@sha256:23d3b63d959e997800b095fe93009b3fae271b5258234ff2ade8535cb33682c8
+    restart: unless-stopped
+    # Own LAN IP (10.32.100.101) on a macvlan, so no port mappings are needed.
+    # Clients and DHCP point at .101, not the Pi's .10.
+    networks:
+      technitium:
+        ipv4_address: 10.32.100.101
+    environment:
+      - DNS_SERVER_DOMAIN=dns01.home.lucaswebber.dev
+      # Only read on first start, when /etc/dns is empty. Set in Infisical
+      # (/rpi5-01/technitium) before deploying to a fresh host.
+      - DNS_SERVER_ADMIN_PASSWORD
+      - DNS_SERVER_OPTIONAL_PROTOCOL_DNS_OVER_HTTP=true # DoH on 8053 for a TLS-terminating proxy
+      - DNS_SERVER_RECURSION=AllowOnlyForPrivateNetworks
+      - DNS_SERVER_ENABLE_BLOCKING=true
+      - DNS_SERVER_FORWARDERS=1.1.1.1, 8.8.8.8
+      - DNS_SERVER_FORWARDER_PROTOCOL=Udp
+      - DNS_SERVER_LOG_USING_LOCAL_TIME=true
+      - DNS_SERVER_LOG_FOLDER_PATH=/var/log/technitium/dns
+    volumes:
+      - /opt/appdata/technitium/config:/etc/dns
+      - /opt/appdata/technitium/logs:/var/log/technitium/dns
+    sysctls:
+      - net.ipv4.ip_local_port_range=1024 65535
+
+networks:
+  technitium:
+    driver: macvlan
+    driver_opts:
+      parent: eth0
+    ipam:
+      config:
+        - subnet: 10.32.100.0/24
+          gateway: 10.32.100.1
+          ip_range: 10.32.100.101/32
