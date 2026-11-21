@@ -9,6 +9,12 @@ variable "proxmox_api_token" {
   sensitive   = true
 }
 
+variable "proxmox_insecure" {
+  description = "Skip TLS verification (needed when the endpoint is the node's IP with its self-signed cert)"
+  type        = bool
+  default     = false
+}
+
 variable "proxmox_node" {
   description = "Proxmox node name to deploy VMs on"
   type        = string

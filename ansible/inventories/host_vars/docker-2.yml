@@ -1,0 +1,18 @@
+# Ubuntu 26.04 defaults to sudo-rs, whose password prompt Ansible doesn't
+# detect ("Timeout waiting for privilege escalation prompt"). Use classic sudo.
+ansible_become_exe: sudo.ws
+
+# Admin keys for this host only (in addition to ssh_common_authorized_keys).
+ssh_host_authorized_keys:
+  # Lucas's Mac, ~/.ssh/docker-2
+  - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIGmnZ55aYKVoIx7RMA+w0npFNURLupo6VNHkSv5SV9NL lucas@mac-docker-2
+
+# Ubuntu cloud images ship without GPU firmware; without it amdgpu fails to
+# init the passed-through RX 7600 XT (early_init ... failed -19).
+extra_packages:
+  - linux-firmware
+
+# Persistent data directories created under /opt/appdata.
+appdata_dirs:
+  - path: /opt/appdata/ollama
+  - path: /opt/appdata/immich-ml

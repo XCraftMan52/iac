@@ -9,7 +9,7 @@
 #   ansible-galaxy collection install -r ansible/requirements.yml
 #   GITHUB_TOKEN=$(gh auth token) ansible-playbook \
 #     -i ansible/inventories/hosts.yml ansible/playbooks/bootstrap-host.yml \
-#     -l rpi4-01 --private-key ~/.ssh/rpi4-01 -K
+#     -l rpi5-02 --private-key ~/.ssh/rpi5-02 -K
 #
 # (-K prompts for the sudo password; only needed until passwordless sudo is set
 #  up by the first run.)
@@ -67,6 +67,12 @@
         state: present
         update_cache: true
         cache_valid_time: 3600
+
+    - name: Install host-specific packages
+      ansible.builtin.apt:
+        name: "{{ extra_packages }}"
+        state: present
+      when: extra_packages | default([]) | length > 0
 
     - name: Add Docker apt repository
       ansible.builtin.deb822_repository:

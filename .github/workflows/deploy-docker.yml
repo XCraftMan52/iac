@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
     inputs:
       service:
-        description: "Service as <host>/<service> (e.g. rpi4-01/fpp-main)"
+        description: "Service as <host>/<service> (e.g. rpi5-01/technitium)"
         required: true
         type: string
       action:
