@@ -3,7 +3,7 @@ name: immich
 services:
   immich-server:
     container_name: immich_server
-    image: ghcr.io/immich-app/immich-server:v3.1.0
+    image: ghcr.io/immich-app/immich-server:v3.4.2@sha256:fc880c1bf665b4aab1e74c15e56ab871225989cd546536e6b77e771869af06bd
     extends:
       file: hwaccel.transcoding.yml
       service: ${TRANSCODING_BACKEND:-cpu}
@@ -35,7 +35,7 @@ services:
     container_name: immich_machine_learning
     # CPU-only until GPU workloads move to docker-2 (GPU passthrough removed from docker-1).
     # To re-enable ROCm: use the -rocm image, extend hwaccel.ml.yml service "rocm", add group_add 44/990.
-    image: ghcr.io/immich-app/immich-machine-learning:v3.1.0
+    image: ghcr.io/immich-app/immich-machine-learning:v3.4.2@sha256:739405742a79bd7447227c553bb62ed5491aa36acf00bc667af7f9c93b6fae91
     volumes:
       - model-cache:/cache
     env_file:
@@ -57,7 +57,7 @@ services:
 
   database:
     container_name: immich_postgres
-    image: ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0
+    image: ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0@sha256:c570d9e1c2494f65d2a0a379a7f6df66e8441964254a30aa62cc58e8ebf1dee0
     environment:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_USER: ${DB_USERNAME}
