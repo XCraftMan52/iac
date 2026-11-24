@@ -1,6 +1,6 @@
 services:
   meghanwitt-com:
-    image: ghcr.io/xcraftman52/meghanwitt-com:latest
+    image: ghcr.io/xcraftman52/meghanwitt-com:latest@sha256:7ad3c6b636628974c2a4de02aa01f474c2eb387f4a0ed430045234e1fae8b547
     container_name: meghanwitt-com
     env_file: .env
     labels:
