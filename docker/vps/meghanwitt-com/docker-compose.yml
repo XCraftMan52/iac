@@ -8,10 +8,7 @@ services:
     - "traefik.http.routers.meghanwitt.rule=Host(`$MEGHANWITT_DOMAIN_NAME`) || Host(`www.$MEGHANWITT_DOMAIN_NAME`)"
     - "traefik.http.routers.meghanwitt.entrypoints=https"
     - "traefik.http.routers.meghanwitt.tls.certresolver=dns-cloudflare"
-    - "traefik.http.routers.meghanwitt.middlewares=meghanwitt-auth"
     - "traefik.http.services.meghanwitt.loadBalancer.server.port=3000"
-    # Temporary password gate until the site is ready to go public
-    - "traefik.http.middlewares.meghanwitt-auth.basicauth.users=$MEGHANWITT_PASS"
     networks:
       - proxy
     security_opt:
