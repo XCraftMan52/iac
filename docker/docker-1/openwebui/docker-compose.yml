@@ -1,35 +1,17 @@
 services:
-  ollama:
-    image: ollama/ollama:rocm@sha256:85b3c895222b1ddc9d63c40b20fc74f37a37593dcbbdfbf28910a925e43ead00
-    container_name: ollama
-    devices:
-      - /dev/kfd:/dev/kfd
-      - /dev/dri:/dev/dri
-    volumes:
-      - /opt/appdata/openwebui/models:/root/.ollama
-    networks:
-      - ollama
-    ports:
-      - "11434:11434"
-    restart: unless-stopped
-    # environment:
-    #   - HSA_OVERRIDE_GFX_VERSION=gfx1102 # Adjust for your AMD GPU
-
   open-webui:
     image: ghcr.io/open-webui/open-webui:main@sha256:59b912d4246103c7285de0e9a5f2f6586614c06b4c4e46edc51a8f29e7b099a5
     container_name: openwebui
     volumes:
       - /opt/appdata/openwebui/openwebui:/app/backend/data
-    depends_on:
-      - ollama
     ports:
       - 3000:8080
     environment:
-      - 'OLLAMA_BASE_URL=http://ollama:11434'
+      # Ollama runs on docker-2, which has the GPU (docker/docker-2/ollama).
+      - 'OLLAMA_BASE_URL=http://10.32.100.43:11434'
     restart: unless-stopped
     networks:
       - proxy
-      - ollama
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.rule=Host(`${TRAEFIK_DOMAIN}`)"
@@ -40,4 +22,3 @@ services:
 networks:
   proxy:
     external: true
-  ollama:

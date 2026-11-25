@@ -13,6 +13,9 @@ services:
       - /etc/localtime:/etc/localtime:ro
     env_file:
       - .env
+    environment:
+      # Machine learning runs on docker-2, which has the GPU (docker/docker-2/immich-ml).
+      - IMMICH_MACHINE_LEARNING_URL=http://10.32.100.43:3003
     ports:
       - '2283:2283'
     depends_on:
@@ -30,21 +33,6 @@ services:
       - "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.entrypoints=https"
       - "traefik.http.routers.${TRAEFIK_ROUTER_NAME}.tls.certresolver=${TRAEFIK_CERT_RESOLVER}"
       - "traefik.http.services.${TRAEFIK_ROUTER_NAME}.loadbalancer.server.port=2283"
-
-  immich-machine-learning:
-    container_name: immich_machine_learning
-    # CPU-only until GPU workloads move to docker-2 (GPU passthrough removed from docker-1).
-    # To re-enable ROCm: use the -rocm image, extend hwaccel.ml.yml service "rocm", add group_add 44/990.
-    image: ghcr.io/immich-app/immich-machine-learning:v3.4.2@sha256:739405742a79bd7447227c553bb62ed5491aa36acf00bc667af7f9c93b6fae91
-    volumes:
-      - model-cache:/cache
-    env_file:
-      - .env
-    networks:
-      - immich
-    restart: always
-    healthcheck:
-      disable: false
 
   redis:
     container_name: immich_redis
@@ -73,9 +61,6 @@ services:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME} -d ${DB_DATABASE_NAME} -h localhost || exit 1"]
     networks:
       - immich
-
-volumes:
-  model-cache:
 
 networks:
   immich:
