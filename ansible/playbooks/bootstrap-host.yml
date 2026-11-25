@@ -101,6 +101,12 @@
         state: started
         enabled: true
 
+    - name: Let {{ ansible_user }} run docker without sudo
+      ansible.builtin.user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: true
+
     # ------------------------------------------------- repo pull (deploy key)
     - name: Generate repo pull key
       community.crypto.openssh_keypair:
