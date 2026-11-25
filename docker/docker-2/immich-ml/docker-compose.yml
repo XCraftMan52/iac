@@ -1,0 +1,22 @@
+name: immich-ml
+
+services:
+  immich-machine-learning:
+    container_name: immich_machine_learning
+    # Keep the version in step with immich-server on docker-1; Renovate updates
+    # both in the same "immich" group.
+    image: ghcr.io/immich-app/immich-machine-learning:v3.4.2-rocm@sha256:d6910817cb774b1211b2475eb5844af783386eaed00106dea1f0fee9d6184042
+    restart: always
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - "44"  # video on docker-2
+      - "990" # render on docker-2 (owns /dev/kfd and renderD128)
+    volumes:
+      - /opt/appdata/immich-ml:/cache
+    # immich-server on docker-1 connects here (IMMICH_MACHINE_LEARNING_URL).
+    ports:
+      - "3003:3003"
+    healthcheck:
+      disable: false

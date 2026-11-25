@@ -1,0 +1,22 @@
+name: ollama
+
+services:
+  ollama:
+    image: ollama/ollama:rocm@sha256:85b3c895222b1ddc9d63c40b20fc74f37a37593dcbbdfbf28910a925e43ead00
+    container_name: ollama
+    restart: unless-stopped
+    # RX 7600 passed through from Proxmox (see terraform/docker-2.tf).
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    group_add:
+      - "44"  # video on docker-2
+      - "990" # render on docker-2 (owns /dev/kfd and renderD128)
+    # environment:
+    #   - HSA_OVERRIDE_GFX_VERSION=11.0.0 # only if ROCm doesn't pick up the gfx1102 card
+    volumes:
+      - /opt/appdata/ollama:/root/.ollama
+    # Open WebUI on docker-1 connects here. The Ollama API has no auth, so this
+    # is LAN-only; never route it through Traefik.
+    ports:
+      - "11434:11434"
